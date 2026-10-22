@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
@@ -10,7 +12,20 @@ import 'features/powers_of_attorney/presentation/screens/powers_of_attorney_scre
 import 'features/bailiffs/presentation/screens/bailiffs_screen.dart';
 import 'features/admin_work/presentation/screens/admin_work_screen.dart';
 
+// إصلاح مشكلة SQLite على الويب
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+
 void main() {
+  // تهيئة قاعدة البيانات لجميع المنصات
+  if (kIsWeb) {
+    // استخدام SQLite Web FFI للويب
+    databaseFactory = databaseFactoryFfiWeb;
+  } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+
   runApp(
     MultiProvider(
       providers: [
@@ -37,20 +52,31 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const MainShell(),
+      home: const JudicialAgendaShell(),
     );
   }
 }
 
-class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+/// الواجهة الرئيسية الجديدة - تصميم نقي بالإيماءات
+class JudicialAgendaShell extends StatefulWidget {
+  const JudicialAgendaShell({super.key});
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  State<JudicialAgendaShell> createState() => _JudicialAgendaShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _JudicialAgendaShellState extends State<JudicialAgendaShell>
+    with SingleTickerProviderStateMixin {
+  late final PageController _pageController;
   int _currentIndex = 0;
+
+  final List<String> _titles = [
+    'الجلسات اليومية',
+    'البيانات الشخصية',
+    'التوكيلات',
+    'المحضرين',
+    'الأعمال الإدارية',
+  ];
 
   final List<Widget> _screens = [
     const DailyScheduleScreen(),
@@ -61,25 +87,140 @@ class _MainShellState extends State<MainShell> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _navigateToPage(int index) {
+    setState(() => _currentIndex = index);
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOutCubic,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+      backgroundColor: AppColors.paperCream,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // شريط العنوان الأنيق
+            _buildMinimalistHeader(),
+            
+            // التنقل بالإيماءات (Swipe)
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: (index) => setState(() => _currentIndex = index),
+                children: _screens,
+              ),
+            ),
+            
+            // مؤشر الصفحات السفلي
+            _buildPageIndicator(),
+          ],
+        ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.primaryOlive,
-        unselectedItemColor: AppColors.textLight,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'اليومية'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'البيانات'),
-          BottomNavigationBarItem(icon: Icon(Icons.description), label: 'التوكيلات'),
-          BottomNavigationBarItem(icon: Icon(Icons.gavel), label: 'المحضرين'),
-          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'إدارية'),
+    );
+  }
+
+  /// الهيدر النقي - بدون أزرار، فقط عنوان ومؤشرات تنقل خفية
+  Widget _buildMinimalistHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              // الخط الذهبي الأيسر
+              Container(
+                width: 3,
+                height: 32,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.secondaryGold,
+                      AppColors.primaryOlive,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 12),
+              
+              // العنوان بخط أميري
+              Expanded(
+                child: Text(
+                  _titles[_currentIndex],
+                  style: const TextStyle(
+                    fontFamily: 'Amiri',
+                    fontSize: 28,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryOlive,
+                    height: 1.2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // مؤشر التنقل السريع (نقاط قابلة للضغط)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              _screens.length,
+              (index) => _buildNavDot(index),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  /// نقاط التنقل النقية
+  Widget _buildNavDot(int index) {
+    final isActive = index == _currentIndex;
+    return GestureDetector(
+      onTap: () => _navigateToPage(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+        width: isActive ? 24 : 8,
+        height: 8,
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primaryOlive : AppColors.primaryOlive.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ),
+    );
+  }
+
+  /// مؤشر الصفحات السفلي (خط ذهبي رفيع)
+  Widget _buildPageIndicator() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Container(
+        width: 60,
+        height: 2,
+        decoration: BoxDecoration(
+          color: AppColors.secondaryGold.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(1),
+        ),
       ),
     );
   }

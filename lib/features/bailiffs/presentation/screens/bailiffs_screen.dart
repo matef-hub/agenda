@@ -85,7 +85,7 @@ class _BailiffsScreenState extends State<BailiffsScreen> {
                 'notes': notesCtrl.text,
                 'created_at': DateTime.now().toIso8601String(),
               };
-                            if (paper == null) {
+              if (paper == null) {
                 await _dbHelper.insert('bailiff_papers', data);
               } else {
                 await _dbHelper.update('bailiff_papers', data, paper['id']);
@@ -103,7 +103,7 @@ class _BailiffsScreenState extends State<BailiffsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-            appBar: AppBar(
+      appBar: AppBar(
         title: Text('أوراق المحضرين', style: GoogleFonts.amiri(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.paperCream,
         foregroundColor: AppColors.primaryOlive,
@@ -117,7 +117,7 @@ class _BailiffsScreenState extends State<BailiffsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _papers.isEmpty
               ? Center(child: Text('لا توجد أوراق مسجلة', style: TextStyle(color: AppColors.textLight)))
-                            : Container(
+              : Container(
                   margin: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     border: Border.all(color: AppColors.primaryOlive, width: 2),
@@ -178,8 +178,8 @@ class _BailiffsScreenState extends State<BailiffsScreen> {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text('تسليم: ${p['delivery_date'] ?? '-'}', style: const TextStyle(fontSize: 10)),
-                                            Text('جلسة: ${p['hearing_date'] ?? '-'}', style: const TextStyle(fontSize: 10, color: AppColors.accentRed)),
+                                            Text('تسليم: ', style: const TextStyle(fontSize: 10)),
+                                            Text('جلسة: ', style: const TextStyle(fontSize: 10, color: AppColors.accentRed)),
                                             if ((p['status'] ?? '').toString().isNotEmpty)
                                               Text(p['status'], style: const TextStyle(fontSize: 9, fontStyle: FontStyle.italic)),
                                           ],
@@ -197,6 +197,7 @@ class _BailiffsScreenState extends State<BailiffsScreen> {
                   ),
                 ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_bailiffs',
         onPressed: () => _showAddEditDialog(),
         backgroundColor: AppColors.primaryOlive,
         child: Icon(Icons.add, color: Colors.white),

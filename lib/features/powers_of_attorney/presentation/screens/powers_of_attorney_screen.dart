@@ -388,6 +388,7 @@ class _PowersOfAttorneyScreenState extends State<PowersOfAttorneyScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_poa',
         onPressed: () => _showAddEditDialog(),
         backgroundColor: AppColors.primaryOlive,
         child: const Icon(Icons.add, color: Colors.white),

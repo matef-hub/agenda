@@ -143,6 +143,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_daily_schedule',
         onPressed: () {
           Navigator.push(
             context,

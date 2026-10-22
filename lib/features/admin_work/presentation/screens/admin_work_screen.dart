@@ -201,7 +201,8 @@ class _AdminWorkScreenState extends State<AdminWorkScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+            floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_admin',
         onPressed: _showAddNoteDialog,
         backgroundColor: AppColors.primaryOlive,
         child: Icon(Icons.add, color: Colors.white),
