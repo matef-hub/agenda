@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -15,8 +15,6 @@ class DailyScheduleScreen extends StatefulWidget {
 }
 
 class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
-  // Removed mock data and local date state; using Provider now
-
   void _changeDate(int days, SessionProvider provider) {
     final newDate = provider.selectedDate.add(Duration(days: days));
     provider.setSelectedDate(newDate);
@@ -52,7 +50,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
               hijriYear: hijriYear,
               weekday: weekday,
             ),
-            
+
             // --- شريط التنقل بين الأيام ---
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -86,15 +84,17 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
             Expanded(
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : sessions.isEmpty
-                      ? _buildEmptyState()
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(8),
-                          itemCount: sessions.length,
-                          itemBuilder: (context, index) {
-                            return _buildSessionCard(sessions[index]);
-                          },
-                        ),
+                  : provider.errorMessage != null
+                      ? _buildErrorState(provider.errorMessage!)
+                      : sessions.isEmpty
+                          ? _buildEmptyState(provider)
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(8),
+                              itemCount: sessions.length,
+                              itemBuilder: (context, index) {
+                                return _buildSessionCard(sessions[index]);
+                              },
+                            ),
             ),
           ],
         ),
@@ -129,7 +129,8 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: const BoxDecoration(
         color: AppColors.paperCream,
-        border: Border(bottom: BorderSide(color: AppColors.secondaryGold, width: 2)),
+        border: Border(
+            bottom: BorderSide(color: AppColors.secondaryGold, width: 2)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -141,7 +142,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
             day: hijriDay,
             month: hijriMonth,
           ),
-          
+
           // --- الوسط (اسم اليوم + السنة) ---
           Expanded(
             child: Column(
@@ -160,22 +161,29 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                   children: [
                     Text(
                       hijriYear,
-                      style: const TextStyle(fontSize: 16, color: AppColors.primaryOlive, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 16,
+                          color: AppColors.primaryOlive,
+                          fontWeight: FontWeight.bold),
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Icon(Icons.gavel, size: 20, color: AppColors.accentRed),
+                      child: Icon(Icons.gavel,
+                          size: 20, color: AppColors.accentRed),
                     ),
                     Text(
                       gregorianYear,
-                      style: const TextStyle(fontSize: 16, color: AppColors.accentRed, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 16,
+                          color: AppColors.accentRed,
+                          fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-          
+
           // --- التاريخ الميلادي (يمين) ---
           _buildDateBox(
             label: 'ميلادي',
@@ -205,7 +213,8 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 10, color: AppColors.textLight),
+            style:
+                const TextStyle(fontSize: 10, color: AppColors.textLight),
           ),
           const SizedBox(height: 2),
           Text(
@@ -218,7 +227,8 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
           ),
           Text(
             month,
-            style: const TextStyle(fontSize: 10, color: AppColors.textDark),
+            style:
+                const TextStyle(fontSize: 10, color: AppColors.textDark),
             overflow: TextOverflow.ellipsis,
           ),
         ],
@@ -226,7 +236,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
     );
   }
 
-    Widget _buildSessionCard(Session session) {
+  Widget _buildSessionCard(Session session) {
     return Dismissible(
       key: Key(session.id.toString()),
       direction: DismissDirection.endToStart,
@@ -243,8 +253,13 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
             title: const Text('تأكيد الحذف'),
             content: const Text('هل أنت متأكد من حذف هذه الجلسة؟'),
             actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('إلغاء')),
-              TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('حذف', style: TextStyle(color: AppColors.accentRed))),
+              TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('إلغاء')),
+              TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('حذف',
+                      style: TextStyle(color: AppColors.accentRed))),
             ],
           ),
         );
@@ -256,7 +271,8 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
         margin: const EdgeInsets.only(bottom: 8),
         elevation: 1,
         shape: RoundedRectangleBorder(
-          side: const BorderSide(color: AppColors.tableBorder, width: 0.5),
+          side:
+              const BorderSide(color: AppColors.tableBorder, width: 0.5),
           borderRadius: BorderRadius.circular(4),
         ),
         child: InkWell(
@@ -273,75 +289,111 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
           },
           child: Padding(
             padding: const EdgeInsets.all(12),
-            child: Row(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // المحكمة والدائرة
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('المحكمة / الدائرة', style: TextStyle(fontSize: 10, color: AppColors.textLight)),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${session.courtName}\n${session.circuit}\nرقم ${session.caseNumber} لسنة ${session.caseYear}',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryOlive),
+                // الصف الأول: المحكمة والدائرة
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('المحكمة / الدائرة',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.textLight)),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${session.courtName}\n${session.circuit}\nرقم ${session.caseNumber} لسنة ${session.caseYear}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: AppColors.primaryOlive),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-              ),
-                const VerticalDivider(width: 16, thickness: 1, color: AppColors.divider),
-                // الموكل
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('الموكل', style: TextStyle(fontSize: 10, color: AppColors.textLight)),
-                      const SizedBox(height: 4),
-                      Text('${session.clientName}\n(${session.clientCapacity})', style: const TextStyle(fontSize: 13)),
-                    ],
-                  ),
-                ),
-                const VerticalDivider(width: 16, thickness: 1, color: AppColors.divider),
-                // الخصم
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('الخصم', style: TextStyle(fontSize: 10, color: AppColors.textLight)),
-                      const SizedBox(height: 4),
-                      Text('${session.opponentName}\n(${session.opponentCapacity})', style: const TextStyle(fontSize: 13)),
-                    ],
-                  ),
-                ),
-                const VerticalDivider(width: 16, thickness: 1, color: AppColors.divider),
-                // الجلسة السابقة والقرار
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('السابقة / القرار', style: TextStyle(fontSize: 10, color: AppColors.textLight)),
-                      const SizedBox(height: 4),
-                      Text(session.previousSession, style: const TextStyle(fontSize: 11)),
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.accentRed.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                        child: Text(
-                          session.decision.isEmpty ? '---' : session.decision,
-                          style: const TextStyle(fontSize: 11, color: AppColors.accentRed, fontWeight: FontWeight.bold),
-                        ),
+                    ),
+                    const SizedBox(width: 8),
+                    // الموكل
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('الموكل',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.textLight)),
+                          const SizedBox(height: 4),
+                          Text(
+                              '${session.clientName}\n(${session.clientCapacity})',
+                              style: const TextStyle(fontSize: 13)),
+                        ],
                       ),
+                    ),
+                    const SizedBox(width: 8),
+                    // الخصم
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('الخصم',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.textLight)),
+                          const SizedBox(height: 4),
+                          Text(
+                              '${session.opponentName}\n(${session.opponentCapacity})',
+                              style: const TextStyle(fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                // الصف الثاني: القرار والملاحظات (إن وجدت)
+                if (session.previousSession.isNotEmpty ||
+                    session.decision.isNotEmpty) ...[
+                  const Divider(height: 16),
+                  Row(
+                    children: [
+                      if (session.previousSession.isNotEmpty)
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('السابقة',
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      color: AppColors.textLight)),
+                              Text(session.previousSession,
+                                  style: const TextStyle(fontSize: 11)),
+                            ],
+                          ),
+                        ),
+                      if (session.decision.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color:
+                                AppColors.accentRed.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            session.decision,
+                            style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.accentRed,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
                     ],
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -350,7 +402,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(SessionProvider provider) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -363,9 +415,46 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
           ),
           const SizedBox(height: 8),
           TextButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddEditSessionScreen(
+                    initialDate: provider.selectedDate,
+                  ),
+                ),
+              );
+            },
             icon: const Icon(Icons.add),
             label: const Text('إضافة جلسة'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 64, color: AppColors.accentRed),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              message,
+              style: const TextStyle(fontSize: 14, color: AppColors.accentRed),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextButton.icon(
+            onPressed: () {
+              context.read<SessionProvider>().loadSessions();
+            },
+            icon: const Icon(Icons.refresh),
+            label: const Text('إعادة المحاولة'),
           ),
         ],
       ),
