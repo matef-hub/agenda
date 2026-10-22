@@ -1,17 +1,73 @@
-# agenda
+# الأجندة القضائية (Egyptian Judicial Agenda)
 
-A new Flutter project.
+تطبيق موبايل احترافي مصمم خصيصاً للمحامين المصريين، يحاكي الأجندة القضائية الورقية التقليدية بتصميمها المميز (اللون الزيتي، الذهبي، وقوام ورق الكريمة) مع توفير أدوات رقمية لتنظيم الجلسات والتوكيلات وأعمال المحضرين.
 
-## Getting Started
+## ✨ المميزات الرئيسية
 
-This project is a starting point for a Flutter application.
+- **جدول الجلسات اليومي:** عرض كثيف للمعلومات يشمل المحكمة، الدائرة، رقم الدعوى، الموكل، الخصم، والقرارات.
+- **دعم التقويم الهجري والميلادي:** عرض مزدوج للتاريخ في رأس الشاشة.
+- **فهرس التوكيلات:** جدول منظم لبيانات التوكيلات وأرقامها ومكاتب التوثيق.
+- **أوراق المحضرين:** تتبع أوراق التكليف والإعلان وتواريخ الجلسات المرتبطة بها.
+- **الأعمال الإدارية:** قائمة مهام وملاحظات إدارية قابلة للتتبع.
+- **البيانات الشخصية:** صفحة مخصصة لبيانات المحامي ومكتبه.
+- **واجهة عربية بالكامل (RTL):** مصممة لتعمل باللغة العربية كلغة أساسية مع خطوط عربية احترافية (Cairo/Amiri).
 
-A few resources to get you started if this is your first Flutter project:
+## 🏗️ البنية التقنية
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+يعتمد المشروع على بنية نظيفة مبسطة (Clean Architecture Lite):
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- **Framework:** Flutter 3.47+ / Dart 3.13+
+- **State Management:** Provider
+- **Database:** SQLite (sqflite) للتخزين المحلي الآمن.
+- **Architecture:** Feature-first
+  - \lib/core/\: الثيم، الألوان، قاعدة البيانات، والأدوات المساعدة.
+  - \lib/features/\: كل ميزة تحتوي على (data, presentation, logic).
+
+## 🚀 البدء
+
+### المتطلبات المسبقة
+- Flutter SDK (Stable Channel)
+- Android Studio أو VS Code
+- جهاز محاكاة أو جهاز حقيقي
+
+### التثبيت
+
+1. استنسخ المستودع:
+   \\ash
+   git clone <repository-url>
+   cd agenda
+   \
+2. ثبّت المكتبات:
+   \\ash
+   flutter pub get
+   \
+3. شغّل التطبيق:
+   \\ash
+   flutter run
+   \
+## 📂 هيكل المشروع
+
+\\	ext
+lib/
+├── core/
+│   ├── database/      # إعدادات SQLite والجداول
+│   ├── theme/         # الألوان والثيم المخصص للأجندة
+│   └── utils/         # أدوات التاريخ والتنسيق
+├── features/
+│   ├── daily_schedule/    # الجلسات اليومية
+│   ├── personal_data/     # بيانات المحامي
+│   ├── powers_of_attorney/# التوكيلات
+│   ├── bailiffs/          # أوراق المحضرين
+│   └── admin_work/        # الأعمال الإدارية
+└── main.dart              # نقطة الدخول وإعداد الـ Providers
+\
+## 🎨 الهوية البصرية
+
+تم اختيار لوحة الألوان بعناية لتعكس طبيعة المهنة والتراث القضائي المصري:
+- **الزيتي الأساسي (#3E5228):** يرمز للوقار والسلطة القضائية.
+- **الذهبي الثانوي (#C5A059):** للعناوين والحدود المهمة.
+- **الكريمي للخلفية (#FDFBF7):** لمحاكاة ورق الأجندات القديمة وتقليل إجهاد العين.
+
+## 📄 الرخصة
+
+جميع الحقوق محفوظة © 2026. هذا المشروع مخصص للاستخدام الشخصي والمهني.
