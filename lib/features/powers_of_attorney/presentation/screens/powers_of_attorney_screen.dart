@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/database/database_helper.dart';
 
@@ -111,6 +112,21 @@ class _PowersOfAttorneyScreenState extends State<PowersOfAttorneyScreen> {
     }
   }
 
+  Widget _headerCell(String text, {required int flex}) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: GoogleFonts.amiri(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primaryOlive,
+        ),
+      ),
+    );
+  }
+
   void _showAddEditDialog({Map<String, dynamic>? poa}) async {
     final formKey = GlobalKey<FormState>();
     final clientCtrl = TextEditingController(text: poa?['client_name']);
@@ -218,9 +234,14 @@ class _PowersOfAttorneyScreenState extends State<PowersOfAttorneyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('فهرس التوكيلات'),
-        backgroundColor: AppColors.primaryOlive,
-        foregroundColor: Colors.white,
+        title: Text('فهرس التوكيلات', style: GoogleFonts.amiri(fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.paperCream,
+        foregroundColor: AppColors.primaryOlive,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: AppColors.secondaryGold),
+        ),
       ),
       body: Column(
         children: [
@@ -270,54 +291,97 @@ class _PowersOfAttorneyScreenState extends State<PowersOfAttorneyScreen> {
                                   color: AppColors.textLight),
                             ),
                           )
-                        : SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: DataTable(
-                                headingRowColor: WidgetStateProperty.all(
-                                    AppColors.tableHeaderOrange
-                                        .withValues(alpha: 0.3)),
-                                columns: const [
-                                  DataColumn(label: Text('م')),
-                                  DataColumn(label: Text('اسم الموكل')),
-                                  DataColumn(label: Text('رقم التوكيل')),
-                                  DataColumn(label: Text('مكتب التوثيق')),
-                                  DataColumn(label: Text('نوعه')),
-                                  DataColumn(label: Text('التاريخ')),
-                                  DataColumn(label: Text('إجراء')),
-                                ],
-                                rows: _filteredList.map((poa) {
-                                  return DataRow(
-                                    onSelectChanged: (_) =>
-                                        _showAddEditDialog(poa: poa),
-                                    cells: [
-                                      DataCell(
-                                          Text(poa['id'].toString())),
-                                      DataCell(Text(
-                                          poa['client_name'] ?? '')),
-                                      DataCell(Text(
-                                          poa['poa_number'] ?? '')),
-                                      DataCell(Text(
-                                          poa['notarization_office'] ??
-                                              '')),
-                                      DataCell(
-                                          Text(poa['poa_type'] ?? '')),
-                                      DataCell(
-                                          Text(poa['poa_date'] ?? '')),
-                                      DataCell(
-                                        IconButton(
-                                          icon: const Icon(Icons.delete,
-                                              color: AppColors.accentRed,
-                                              size: 20),
-                                          onPressed: () =>
-                                              _deletePoa(poa['id']),
-                                        ),
-                                      ),
+                        : Container(
+                            margin: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: AppColors.primaryOlive, width: 2),
+                              color: Colors.white,
+                            ),
+                            child: Column(
+                              children: [
+                                // رأس الجدول
+                                Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.tableHeaderGreen,
+                                    border: Border(bottom: BorderSide(color: AppColors.primaryOlive, width: 2)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      _headerCell('الموكل', flex: 3),
+                                      _headerCell('رقم / مكتب', flex: 3),
+                                      _headerCell('النوع / التاريخ', flex: 2),
+                                      _headerCell('حذف', flex: 1),
                                     ],
-                                  );
-                                }).toList(),
                               ),
+                                ),
+                                // محتوى الجدول
+                                Expanded(
+                                  child: ListView.separated(
+                                    itemCount: _filteredList.length,
+                                    separatorBuilder: (_, _) => const Divider(height: 1, thickness: 0.5, color: AppColors.tableBorder),
+                                    itemBuilder: (context, index) {
+                                      final poa = _filteredList[index];
+                                      return InkWell(
+                                        onTap: () => _showAddEditDialog(poa: poa),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Expanded(
+                                                flex: 3,
+                                                child: Text(
+                                                  poa['client_name'] ?? '',
+                                                  style: GoogleFonts.amiri(fontSize: 13, fontWeight: FontWeight.bold),
+                                                ),
+                                              ),
+                                              Container(width: 0.5, height: 30, color: AppColors.tableBorder),
+                                              Expanded(
+                                                flex: 3,
+                                                child: Padding(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text('رقم: ${poa['poa_number'] ?? '-'}', style: const TextStyle(fontSize: 11)),
+                                                      Text(poa['notarization_office'] ?? '', style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              Container(width: 0.5, height: 30, color: AppColors.tableBorder),
+                                              Expanded(
+                                                flex: 2,
+                                                child: Padding(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(poa['poa_type'] ?? '', style: const TextStyle(fontSize: 11)),
+                                                      Text(poa['poa_date'] ?? '', style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              Container(width: 0.5, height: 30, color: AppColors.tableBorder),
+                                              Expanded(
+                                                flex: 1,
+                                                child: IconButton(
+                                                  icon: const Icon(Icons.delete_outline, color: AppColors.accentRed, size: 20),
+                                                  onPressed: () => _deletePoa(poa['id']),
+                                                  padding: EdgeInsets.zero,
+                                                  constraints: const BoxConstraints(),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
           ),

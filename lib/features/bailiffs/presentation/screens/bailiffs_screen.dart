@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/database/database_helper.dart';
 
@@ -26,6 +27,21 @@ class _BailiffsScreenState extends State<BailiffsScreen> {
       _papers = data;
       _isLoading = false;
     });
+  }
+
+  Widget _headerCell(String text, {required int flex}) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: GoogleFonts.amiri(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primaryOlive,
+        ),
+      ),
+    );
   }
 
   void _showAddEditDialog({Map<String, dynamic>? paper}) async {
@@ -87,41 +103,97 @@ class _BailiffsScreenState extends State<BailiffsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('أوراق المحضرين'),
-        backgroundColor: AppColors.primaryOlive,
-        foregroundColor: Colors.white,
+            appBar: AppBar(
+        title: Text('أوراق المحضرين', style: GoogleFonts.amiri(fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.paperCream,
+        foregroundColor: AppColors.primaryOlive,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: AppColors.secondaryGold),
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _papers.isEmpty
               ? Center(child: Text('لا توجد أوراق مسجلة', style: TextStyle(color: AppColors.textLight)))
-              : SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      headingRowColor: WidgetStateProperty.all(AppColors.tableHeaderGreen.withValues(alpha: 0.3)),
-                      columns: const [
-                        DataColumn(label: Text('الرقم')),
-                        DataColumn(label: Text('قلم المحضرين')),
-                        DataColumn(label: Text('اسم الموكل')),
-                        DataColumn(label: Text('تاريخ التسليم')),
-                        DataColumn(label: Text('تاريخ الجلسة')),
-                      ],
-                      rows: _papers.map((p) {
-                        return DataRow(
-                          onSelectChanged: (_) => _showAddEditDialog(paper: p),
-                          cells: [
-                            DataCell(Text(p['reference_number'] ?? '')),
-                            DataCell(Text(p['bailiffs_office'] ?? '')),
-                            DataCell(Text(p['client_name'] ?? '')),
-                            DataCell(Text(p['delivery_date'] ?? '')),
-                            DataCell(Text(p['hearing_date'] ?? '')),
+                            : Container(
+                  margin: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.primaryOlive, width: 2),
+                    color: Colors.white,
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: const BoxDecoration(
+                          color: AppColors.tableHeaderGreen,
+                          border: Border(bottom: BorderSide(color: AppColors.primaryOlive, width: 2)),
+                        ),
+                        child: Row(
+                          children: [
+                            _headerCell('الرقم / القلم', flex: 3),
+                            _headerCell('الموكل', flex: 3),
+                            _headerCell('التواريخ / الحالة', flex: 3),
                           ],
-                        );
-                      }).toList(),
-                    ),
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.separated(
+                          itemCount: _papers.length,
+                          separatorBuilder: (_, _) => const Divider(height: 1, thickness: 0.5, color: AppColors.tableBorder),
+                          itemBuilder: (context, index) {
+                            final p = _papers[index];
+                            return InkWell(
+                              onTap: () => _showAddEditDialog(paper: p),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(p['reference_number'] ?? '', style: GoogleFonts.amiri(fontSize: 13, fontWeight: FontWeight.bold)),
+                                          Text(p['bailiffs_office'] ?? '', style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(width: 0.5, height: 30, color: AppColors.tableBorder),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                                        child: Text(p['client_name'] ?? '', style: const TextStyle(fontSize: 12)),
+                                      ),
+                                    ),
+                                    Container(width: 0.5, height: 30, color: AppColors.tableBorder),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text('تسليم: ${p['delivery_date'] ?? '-'}', style: const TextStyle(fontSize: 10)),
+                                            Text('جلسة: ${p['hearing_date'] ?? '-'}', style: const TextStyle(fontSize: 10, color: AppColors.accentRed)),
+                                            if ((p['status'] ?? '').toString().isNotEmpty)
+                                              Text(p['status'], style: const TextStyle(fontSize: 9, fontStyle: FontStyle.italic)),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
       floatingActionButton: FloatingActionButton(
