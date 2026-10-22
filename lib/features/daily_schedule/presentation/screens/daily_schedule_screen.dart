@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -53,34 +54,47 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
 
             // --- شريط التنقل بين الأيام ---
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: AppColors.primaryOlive.withValues(alpha: 0.1),
+
+
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: AppColors.tableBorder, width: 1)),
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_forward_ios, size: 20),
+
+                    icon: const Icon(Icons.arrow_forward_ios, size: 18),
                     onPressed: () => _changeDate(-1, provider),
                     color: AppColors.primaryOlive,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
-                  const Text(
+
+                  Text(
                     'جدول الجلسات اليومية',
-                    style: TextStyle(
-                      fontSize: 16,
+
+
+                    style: GoogleFonts.amiri(
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primaryOlive,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, size: 20),
+
+                    icon: const Icon(Icons.arrow_back_ios, size: 18),
                     onPressed: () => _changeDate(1, provider),
                     color: AppColors.primaryOlive,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
                 ],
               ),
             ),
 
-            // --- جدول الجلسات ---
+            // --- جدول الجلسات (تصميم الأجندة الورقية) ---
             Expanded(
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -88,12 +102,41 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                       ? _buildErrorState(provider.errorMessage!)
                       : sessions.isEmpty
                           ? _buildEmptyState(provider)
-                          : ListView.builder(
-                              padding: const EdgeInsets.all(8),
-                              itemCount: sessions.length,
-                              itemBuilder: (context, index) {
-                                return _buildSessionCard(sessions[index]);
-                              },
+                          : Container(
+                              margin: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppColors.primaryOlive, width: 2),
+                                color: Colors.white,
+                              ),
+                              child: Column(
+                                children: [
+                                  // رأس الجدول
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.tableHeaderGreen,
+                                      border: Border(bottom: BorderSide(color: AppColors.primaryOlive, width: 2)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        _headerCell('المحكمة / الدائرة', flex: 3),
+                                        _headerCell('الموكل / الخصم', flex: 4),
+                                        _headerCell('القرار / السابقة', flex: 3),
+                                      ],
+                                    ),
+                                  ),
+                                  // محتوى الجدول
+                                  Expanded(
+                                    child: ListView.separated(
+                                      itemCount: sessions.length,
+                                      separatorBuilder: (_, _) => const Divider(height: 1, thickness: 0.5, color: AppColors.tableBorder),
+                                      itemBuilder: (context, index) {
+                                        return _buildSessionRow(sessions[index]);
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
             ),
           ],
@@ -149,10 +192,13 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
               children: [
                 Text(
                   weekday,
-                  style: const TextStyle(
-                    fontSize: 28,
+
+
+                  style: GoogleFonts.amiri(
+                    fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textDark,
+                    height: 1.0,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -219,10 +265,13 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
           const SizedBox(height: 2),
           Text(
             day,
-            style: const TextStyle(
-              fontSize: 24,
+
+
+            style: GoogleFonts.amiri(
+              fontSize: 26,
               fontWeight: FontWeight.bold,
               color: AppColors.primaryOlive,
+              height: 1.0,
             ),
           ),
           Text(
@@ -236,7 +285,22 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
     );
   }
 
-  Widget _buildSessionCard(Session session) {
+  Widget _headerCell(String text, {required int flex}) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: GoogleFonts.amiri(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primaryOlive,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSessionRow(Session session) {
     return Dismissible(
       key: Key(session.id.toString()),
       direction: DismissDirection.endToStart,
@@ -253,149 +317,79 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
             title: const Text('تأكيد الحذف'),
             content: const Text('هل أنت متأكد من حذف هذه الجلسة؟'),
             actions: [
-              TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('إلغاء')),
-              TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('حذف',
-                      style: TextStyle(color: AppColors.accentRed))),
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
+              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف', style: TextStyle(color: AppColors.accentRed))),
             ],
           ),
         );
       },
-      onDismissed: (direction) {
-        context.read<SessionProvider>().deleteSession(session.id!);
-      },
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        elevation: 1,
-        shape: RoundedRectangleBorder(
-          side:
-              const BorderSide(color: AppColors.tableBorder, width: 0.5),
-          borderRadius: BorderRadius.circular(4),
+      onDismissed: (_) => context.read<SessionProvider>().deleteSession(session.id!),
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AddEditSessionScreen(session: session, initialDate: session.sessionDate),
+          ),
         ),
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AddEditSessionScreen(
-                  session: session,
-                  initialDate: session.sessionDate,
-                ),
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // الصف الأول: المحكمة والدائرة
-                Row(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // العمود الأول: المحكمة
+              Expanded(
+                flex: 3,
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      flex: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('المحكمة / الدائرة',
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.textLight)),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${session.courtName}\n${session.circuit}\nرقم ${session.caseNumber} لسنة ${session.caseYear}',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: AppColors.primaryOlive),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // الموكل
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('الموكل',
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.textLight)),
-                          const SizedBox(height: 4),
-                          Text(
-                              '${session.clientName}\n(${session.clientCapacity})',
-                              style: const TextStyle(fontSize: 13)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // الخصم
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('الخصم',
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.textLight)),
-                          const SizedBox(height: 4),
-                          Text(
-                              '${session.opponentName}\n(${session.opponentCapacity})',
-                              style: const TextStyle(fontSize: 13)),
-                        ],
-                      ),
-                    ),
+                    Text(session.courtName, style: GoogleFonts.amiri(fontSize: 13, fontWeight: FontWeight.bold)),
+                    Text(session.circuit, style: const TextStyle(fontSize: 11, color: AppColors.textDark)),
+                    const SizedBox(height: 2),
+                    Text('رقم ${session.caseNumber}/${session.caseYear}', style: const TextStyle(fontSize: 10, color: AppColors.primaryOlive)),
                   ],
                 ),
-                // الصف الثاني: القرار والملاحظات (إن وجدت)
-                if (session.previousSession.isNotEmpty ||
-                    session.decision.isNotEmpty) ...[
-                  const Divider(height: 16),
-                  Row(
+              ),
+              // فاصل عمودي
+              Container(width: 0.5, height: 40, color: AppColors.tableBorder),
+              // العمود الثاني: الأطراف
+              Expanded(
+                flex: 4,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (session.previousSession.isNotEmpty)
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('السابقة',
-                                  style: TextStyle(
-                                      fontSize: 10,
-                                      color: AppColors.textLight)),
-                              Text(session.previousSession,
-                                  style: const TextStyle(fontSize: 11)),
-                            ],
-                          ),
-                        ),
-                      if (session.decision.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color:
-                                AppColors.accentRed.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            session.decision,
-                            style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.accentRed,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
+                      RichText(text: TextSpan(children: [
+                        const TextSpan(text: 'موكل: ', style: TextStyle(fontSize: 9, color: AppColors.textLight)),
+                        TextSpan(text: session.clientName, style: const TextStyle(fontSize: 11, color: AppColors.textDark, fontWeight: FontWeight.w600)),
+                      ])),
+                      const SizedBox(height: 2),
+                      RichText(text: TextSpan(children: [
+                        const TextSpan(text: 'خصم: ', style: TextStyle(fontSize: 9, color: AppColors.textLight)),
+                        TextSpan(text: session.opponentName, style: const TextStyle(fontSize: 11, color: AppColors.textDark)),
+                      ])),
                     ],
                   ),
-                ],
-              ],
             ),
+              ),
+              // فاصل عمودي
+              Container(width: 0.5, height: 40, color: AppColors.tableBorder),
+              // العمود الثالث: القرار
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (session.decision.isNotEmpty)
+                      Text(session.decision, style: GoogleFonts.amiri(fontSize: 12, color: AppColors.accentRed, fontWeight: FontWeight.bold)),
+                    if (session.previousSession.isNotEmpty)
+                      Text('س: ${session.previousSession}', style: const TextStyle(fontSize: 9, color: AppColors.textLight)),
+                    if (session.notes.isNotEmpty)
+                      Text(session.notes, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9, fontStyle: FontStyle.italic)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
