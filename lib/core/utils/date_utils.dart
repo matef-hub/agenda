@@ -72,8 +72,9 @@ class AppDateUtils {
   /// This is a pure-Dart, offline computation with no external dependencies.
   static HijriDate gregorianToHijri(DateTime date) {
     final jdn = _gregorianToJdn(date.year, date.month, date.day);
-    if (jdn < _islamicEpochJdn)
+    if (jdn < _islamicEpochJdn) {
       throw ArgumentError('Date precedes Hijri epoch');
+    }
     return _jdnToHijri(jdn);
   }
 

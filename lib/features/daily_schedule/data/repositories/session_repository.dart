@@ -58,16 +58,87 @@ class SessionRepository {
 
   // البحث عن جلسات (باسم الموكل أو رقم القضية)
   Future<List<Session>> searchSessions(String query) async {
-    query = ArabicFormat.normalize(query);
+    query = ArabicFormat.normalize(query)
+        .replaceAll('\\', '\\\\')
+        .replaceAll('%', '\\%')
+        .replaceAll('_', '\\_');
     final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
+    const fields = [
+      'client_name',
+      'opponent_name',
+      'case_number',
+      'court_name',
+    ];
+    String normalized(String field) {
+      var result = field;
+      const arabic = '٠١٢٣٤٥٦٧٨٩';
+      const persian = '۰۱۲۳۴۵۶۷۸۹';
+      for (var i = 0; i < 10; i++) {
+        result =
+            "replace(replace($result, '${arabic[i]}', '$i'), '${persian[i]}', '$i')";
+      }
+      return result;
+    }
+
+    final maps = await db.query(
       'sessions',
       orderBy: 'session_date ASC, court_name ASC, id ASC',
-      where: 'client_name LIKE ? OR case_number LIKE ? OR court_name LIKE ?',
-      whereArgs: ['%$query%', '%$query%', '%$query%'],
+      where: fields
+          .map((field) => "${normalized(field)} LIKE ? ESCAPE '\\'")
+          .join(' OR '),
+      whereArgs: fields.map((_) => '%$query%').toList(),
     );
-    return List.generate(maps.length, (i) {
-      return Session.fromMap(maps[i]);
+    return maps.map(Session.fromMap).toList();
+  }
+
+  Future<List<Session>> caseHistory(Session session) async {
+    final db = await _dbHelper.database;
+    final rows = await db.query(
+      'sessions',
+      where: 'court_name = ? AND case_number = ? AND case_year = ? AND circuit = ?',
+      whereArgs: [session.courtName, session.caseNumber, session.caseYear],
+      orderBy: 'session_date DESC, id DESC',
+    );
+    return rows.map(Session.fromMap).toList();
+  }
+
+  /// Preserves the old hearing and records the next one in a single transaction.
+  Future<void> postpone(Session session, DateTime nextDate) async {
+    if (session.id == null ||
+        !ArabicFormat.day(nextDate)
+            .isAfter(ArabicFormat.day(session.sessionDate))) {
+      throw ArgumentError('The next hearing must be later');
+    }
+    final db = await _dbHelper.database;
+    await db.transaction((txn) async {
+      final existing = await txn.query(
+        'sessions',
+        where: 'id = ?',
+        whereArgs: [session.id],
+      );
+      if (existing.isEmpty) throw StateError('Missing original session');
+      final original = Session.fromMap(existing.single);
+      if (original.updatedAt != session.updatedAt) {
+        throw StateError('Session changed; reload first');
+      }
+      final now = DateTime.now().toIso8601String();
+      final decision = 'تأجيل إلى ${ArabicFormat.date(nextDate)}';
+      await txn.update(
+        'sessions',
+        {'decision': decision, 'updated_at': now},
+        where: 'id = ?',
+        whereArgs: [session.id],
+      );
+      final next = original.toMap()..remove('id');
+      next.addAll({
+        'session_date': ArabicFormat.dateKey(nextDate),
+        'previous_session':
+            '${ArabicFormat.date(original.sessionDate)} — $decision',
+        'decision': '',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await txn.insert('sessions', next);
     });
   }
 }

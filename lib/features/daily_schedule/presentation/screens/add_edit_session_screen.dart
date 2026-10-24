@@ -1,3 +1,6 @@
+import 'case_history_dialog.dart';
+import '../../data/repositories/session_repository.dart';
+
 import 'package:agenda/core/widgets/arabic_text.dart';
 
 import '../../../../core/utils/arabic_format.dart';
@@ -173,6 +176,60 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
     }
   }
 
+  Future<void> _postpone() async {
+    if (_isSaving || widget.session == null) return;
+    final original = widget.session!;
+    final next = ArabicFormat.shiftDay(original.sessionDate, 1);
+    if (next.year >= 2200) return;
+    final date = await showDatePicker(
+      context: context,
+      initialDate: next,
+      firstDate: next,
+      lastDate: DateTime(2200),
+    );
+    if (!mounted || date == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const ArabicText('تأجيل الجلسة'),
+        content: ArabicText(
+          'سيُحفظ قرار التأجيل في الجلسة الأصلية وتُضاف جلسة بتاريخ ${ArabicFormat.date(date)} باستخدام آخر بيانات محفوظة. احفظ أي تعديلات في النموذج أولًا.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const ArabicText('إلغاء'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const ArabicText('تأكيد التأجيل'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || confirmed != true) return;
+    final provider = context.read<SessionProvider>();
+    setState(() => _isSaving = true);
+    try {
+      await SessionRepository().postpone(original, date);
+      provider.setSelectedDate(date);
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      debugPrint('Postpone failed: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: ArabicText(
+              'تعذر التأجيل. أعد فتح الجلسة ثم حاول مرة أخرى.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -189,137 +246,160 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: ArabicText(
-          widget.session == null ? 'إضافة جلسة جديدة' : 'تعديل الجلسة',
-        ),
-        backgroundColor: AppColors.primaryOlive,
-        foregroundColor: Colors.white,
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // اختيار التاريخ
-            ListTile(
-              title: const ArabicText('تاريخ الجلسة'),
-              subtitle: ArabicText(ArabicFormat.date(_selectedDate)),
-              trailing: const Icon(Icons.calendar_today),
-              onTap: () => _selectDate(context),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: BorderSide(color: AppColors.tableBorder),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // حقول الإدخال
-            _buildRequiredField(
-              _courtController,
-              'اسم المحكمة',
-              'مثال: محكمة القاهرة الجديدة',
-            ),
-            const SizedBox(height: 8),
-            _buildRequiredField(
-              _circuitController,
-              'الدائرة',
-              'مثال: الدائرة 5 مدني',
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: _buildRequiredField(
-                    _caseNumberController,
-                    'رقم الدعوى',
-                    '1234',
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(flex: 1, child: _buildCaseYearField()),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-
-            _buildRequiredField(
-              _clientNameController,
-              'اسم الموكل',
-              'الاسم الكامل',
-            ),
-            const SizedBox(height: 8),
-            _buildOptionalField(
-              _clientCapacityController,
-              'صفته',
-              'مدعي / مدعى عليه / متهم',
-            ),
-            const SizedBox(height: 16),
-
-            _buildRequiredField(
-              _opponentNameController,
-              'اسم الخصم',
-              'الاسم الكامل',
-            ),
-            const SizedBox(height: 8),
-            _buildOptionalField(
-              _opponentCapacityController,
-              'صفته',
-              'مدعي / مدعى عليه / سلطة اتهام',
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-
-            _buildOptionalField(
-              _prevSessionController,
-              'الجلسة السابقة',
-              'تاريخ وقرار الجلسة السابقة',
-            ),
-            const SizedBox(height: 8),
-            _buildOptionalField(
-              _decisionController,
-              'القرار الحالي',
-              'تأجيل / حجز / حكم',
-            ),
-            const SizedBox(height: 8),
-            _buildOptionalField(
-              _notesController,
-              'ملاحظات',
-              'أي ملاحظات إضافية',
-              maxLines: 3,
-            ),
-
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _isSaving ? null : _saveSession,
-              icon: _isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+    return PopScope(
+      canPop: !_isSaving,
+      child: Scaffold(
+        appBar: AppBar(
+          actions: [
+            if (widget.session != null) ...[
+              IconButton(
+                tooltip: 'سجل جلسات القضية',
+                icon: const Icon(Icons.history),
+                onPressed: _isSaving
+                    ? null
+                    : () => showDialog(
+                        context: context,
+                        builder: (_) =>
+                            CaseHistoryDialog(session: widget.session!),
                       ),
-                    )
-                  : const Icon(Icons.save),
-              label: ArabicText(
-                'حفظ الجلسة',
-                style: const TextStyle(fontSize: 18),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryOlive,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+              IconButton(
+                tooltip: 'تأجيل مع حفظ الجلسة السابقة',
+                icon: const Icon(Icons.event_repeat),
+                onPressed: _isSaving ? null : _postpone,
+              ),
+            ],
+          ],
+          title: ArabicText(
+            widget.session == null ? 'إضافة جلسة جديدة' : 'تعديل الجلسة',
+          ),
+          backgroundColor: AppColors.primaryOlive,
+          foregroundColor: Colors.white,
+        ),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              // اختيار التاريخ
+              ListTile(
+                title: const ArabicText('تاريخ الجلسة'),
+                subtitle: ArabicText(ArabicFormat.date(_selectedDate)),
+                trailing: const Icon(Icons.calendar_today),
+                onTap: () => _selectDate(context),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(color: AppColors.tableBorder),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+
+              // حقول الإدخال
+              _buildRequiredField(
+                _courtController,
+                'اسم المحكمة',
+                'مثال: محكمة القاهرة الجديدة',
+              ),
+              const SizedBox(height: 8),
+              _buildRequiredField(
+                _circuitController,
+                'الدائرة',
+                'مثال: الدائرة 5 مدني',
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: _buildRequiredField(
+                      _caseNumberController,
+                      'رقم الدعوى',
+                      '1234',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(flex: 1, child: _buildCaseYearField()),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+
+              _buildRequiredField(
+                _clientNameController,
+                'اسم الموكل',
+                'الاسم الكامل',
+              ),
+              const SizedBox(height: 8),
+              _buildOptionalField(
+                _clientCapacityController,
+                'صفته',
+                'مدعي / مدعى عليه / متهم',
+              ),
+              const SizedBox(height: 16),
+
+              _buildRequiredField(
+                _opponentNameController,
+                'اسم الخصم',
+                'الاسم الكامل',
+              ),
+              const SizedBox(height: 8),
+              _buildOptionalField(
+                _opponentCapacityController,
+                'صفته',
+                'مدعي / مدعى عليه / سلطة اتهام',
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+
+              _buildOptionalField(
+                _prevSessionController,
+                'الجلسة السابقة',
+                'تاريخ وقرار الجلسة السابقة',
+              ),
+              const SizedBox(height: 8),
+              _buildOptionalField(
+                _decisionController,
+                'القرار الحالي',
+                'تأجيل / حجز / حكم',
+              ),
+              const SizedBox(height: 8),
+              _buildOptionalField(
+                _notesController,
+                'ملاحظات',
+                'أي ملاحظات إضافية',
+                maxLines: 3,
+              ),
+
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _isSaving ? null : _saveSession,
+                icon: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.save),
+                label: ArabicText(
+                  'حفظ الجلسة',
+                  style: const TextStyle(fontSize: 18),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryOlive,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -334,12 +414,13 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
     int maxLines = 1,
   }) {
     return TextFormField(
+      enabled: !_isSaving,
       inputFormatters: const [ArabicDigitsFormatter()],
       textDirection: TextDirection.rtl,
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        hintText: hint,
+        hintText: ArabicFormat.digits(hint),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       ),
       keyboardType: keyboardType,
@@ -362,12 +443,13 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
     int maxLines = 1,
   }) {
     return TextFormField(
+      enabled: !_isSaving,
       inputFormatters: const [ArabicDigitsFormatter()],
       textDirection: TextDirection.rtl,
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        hintText: hint,
+        hintText: ArabicFormat.digits(hint),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       ),
       keyboardType: keyboardType,
@@ -378,6 +460,7 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
   /// Builds the case year field with numeric validation.
   Widget _buildCaseYearField() {
     return TextFormField(
+      enabled: !_isSaving,
       inputFormatters: const [ArabicDigitsFormatter()],
       textDirection: TextDirection.rtl,
       controller: _caseYearController,

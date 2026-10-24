@@ -1,3 +1,7 @@
+import 'package:file_picker/file_picker.dart';
+
+import '../../data/repositories/schedule_export.dart';
+
 import 'package:agenda/core/widgets/arabic_text.dart';
 
 import 'dart:async';
@@ -5,7 +9,6 @@ import 'dart:async';
 import '../../../../core/utils/arabic_format.dart';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/utils/date_utils.dart';
@@ -26,6 +29,48 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
   final _searchController = TextEditingController();
   Timer? _debounce;
   final _deleting = <int>{};
+  bool _exporting = false;
+  Future<void> _export(String format, SessionProvider provider) async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
+    try {
+      final sessions = List<Session>.from(provider.sessions);
+      final bytes = format == 'pdf'
+          ? await ScheduleExport.pdf(
+              sessions,
+              provider.selectedDate,
+              searchResults: provider.searchQuery.isNotEmpty,
+            )
+          : ScheduleExport.calendar(sessions);
+      final saved = await FilePicker.saveFile(
+        fileName:
+            'أجندة-${ArabicFormat.digits(ArabicFormat.dateKey(provider.selectedDate))}.$format',
+        bytes: bytes,
+        mimeType: format == 'pdf' ? 'application/pdf' : 'text/calendar',
+      );
+      if (saved != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: ArabicText(
+              format == 'pdf' ? 'تم حفظ الجدول؛ يمكنك طباعته من قارئ الملفات.' : 'تم حفظ ملف التقويم. افتحه في تطبيق التقويم لإضافة المواعيد والتذكير.',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Schedule export failed: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: ArabicText('تعذر تصدير الجدول. أعد المحاولة.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -41,7 +86,8 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
       lastDate: DateTime(2200),
     );
     if (picked != null && mounted) {
-      _searchController.clear();
+      _debounce?.cancel();
+    _searchController.clear();
       provider.setSelectedDate(picked);
     }
   }
@@ -71,16 +117,18 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
     final saved = await provider.deleteSession(session.id!);
     if (!mounted) return;
     setState(() => _deleting.remove(session.id));
-    if (!saved)
+    if (!saved) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: ArabicText(provider.errorMessage ?? 'تعذر حذف الجلسة'),
         ),
       );
+    }
   }
 
   void _changeDate(int days, SessionProvider provider) {
     final newDate = ArabicFormat.shiftDay(provider.selectedDate, days);
+    _debounce?.cancel();
     _searchController.clear();
     provider.setSelectedDate(newDate);
   }
@@ -102,191 +150,236 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
     final weekday = AppDateUtils.getWeekday(selectedDate);
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // --- الهيدر العلوي (Header) ---
-            _buildHeader(
-              gregorianDay: gregorianDay,
-              gregorianMonth: gregorianMonth,
-              gregorianYear: gregorianYear,
-              hijriDay: hijriDay,
-              hijriMonth: hijriMonth,
-              hijriYear: hijriYear,
-              weekday: weekday,
-            ),
-
-            // --- شريط التنقل بين الأيام ---
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: AppColors.tableBorder, width: 1),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          child: SizedBox(
+            height: constraints.maxHeight < 480 ? 480 : constraints.maxHeight,
+            child: SafeArea(
+              child: Column(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_forward_ios, size: 18),
-                    tooltip: 'اليوم السابق',
-                    onPressed:
-                        selectedDate.year <= 1900 &&
-                            selectedDate.month == 1 &&
-                            selectedDate.day == 1
-                        ? null
-                        : () => _changeDate(-1, provider),
-                    color: AppColors.primaryOlive,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                  // --- الهيدر العلوي (Header) ---
+                  _buildHeader(
+                    gregorianDay: gregorianDay,
+                    gregorianMonth: gregorianMonth,
+                    gregorianYear: gregorianYear,
+                    hijriDay: hijriDay,
+                    hijriMonth: hijriMonth,
+                    hijriYear: hijriYear,
+                    weekday: weekday,
                   ),
 
-                  ArabicText(
-                    'جدول الجلسات اليومية',
-
-                    style: GoogleFonts.amiri(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryOlive,
+                  // --- شريط التنقل بين الأيام ---
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, size: 18),
-                    tooltip: 'اليوم التالي',
-                    onPressed:
-                        selectedDate.year >= 2199 &&
-                            selectedDate.month == 12 &&
-                            selectedDate.day == 31
-                        ? null
-                        : () => _changeDate(1, provider),
-                    color: AppColors.primaryOlive,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      inputFormatters: const [ArabicDigitsFormatter()],
-                      decoration: InputDecoration(
-                        hintText: 'بحث في كل الجلسات',
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchController.text.isEmpty
-                            ? null
-                            : IconButton(
-                                tooltip: 'مسح البحث',
-                                onPressed: () {
-                                  _searchController.clear();
-                                  provider.search('');
-                                },
-                                icon: const Icon(Icons.close),
-                              ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {});
-                        _debounce?.cancel();
-                        _debounce = Timer(
-                          const Duration(milliseconds: 250),
-                          () => provider.search(value),
-                        );
-                      },
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'اختيار تاريخ',
-                    onPressed: () => _pickDate(provider),
-                    icon: const Icon(Icons.calendar_month),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      _searchController.clear();
-                      provider.setSelectedDate(DateTime.now());
-                    },
-                    child: const ArabicText('اليوم'),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: ArabicText(
-                  provider.searchQuery.isEmpty
-                      ? 'الجلسات: ${sessions.length}'
-                      : 'نتائج البحث في كل التواريخ: ${sessions.length}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textLight,
-                  ),
-                ),
-              ),
-            ),
-            // --- جدول الجلسات (تصميم الأجندة الورقية) ---
-            Expanded(
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : provider.errorMessage != null
-                  ? _buildErrorState(provider.errorMessage!)
-                  : sessions.isEmpty
-                  ? _buildEmptyState(provider)
-                  : Container(
-                      margin: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: AppColors.primaryOlive,
-                          width: 2,
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: AppColors.tableBorder,
+                          width: 1,
                         ),
-                        color: Colors.white,
                       ),
-                      child: Column(
-                        children: [
-                          // رأس الجدول
-                          Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: const BoxDecoration(
-                              color: AppColors.tableHeaderGreen,
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: AppColors.primaryOlive,
-                                  width: 2,
-                                ),
-                              ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_forward_ios, size: 18),
+                          tooltip: 'اليوم السابق',
+                          onPressed:
+                              selectedDate.year <= 1900 &&
+                                  selectedDate.month == 1 &&
+                                  selectedDate.day == 1
+                              ? null
+                              : () => _changeDate(-1, provider),
+                          color: AppColors.primaryOlive,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+
+                        ArabicText(
+                          'جدول الجلسات اليومية',
+
+                          style: TextStyle(
+                            fontFamily: 'Amiri',
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryOlive,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios, size: 18),
+                          tooltip: 'اليوم التالي',
+                          onPressed:
+                              selectedDate.year >= 2199 &&
+                                  selectedDate.month == 12 &&
+                                  selectedDate.day == 31
+                              ? null
+                              : () => _changeDate(1, provider),
+                          color: AppColors.primaryOlive,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            inputFormatters: const [ArabicDigitsFormatter()],
+                            decoration: InputDecoration(
+                              hintText: 'بحث في كل الجلسات',
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon: _searchController.text.isEmpty
+                                  ? null
+                                  : IconButton(
+                                      tooltip: 'مسح البحث',
+                                      onPressed: () {
+                                        _debounce?.cancel();
+    _searchController.clear();
+                                        provider.search('');
+                                      },
+                                      icon: const Icon(Icons.close),
+                                    ),
                             ),
-                            child: Row(
+                            onChanged: (value) {
+                              setState(() {});
+                              _debounce?.cancel();
+                              _debounce = Timer(
+                                const Duration(milliseconds: 250),
+                                () => provider.search(value),
+                              );
+                            },
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'اختيار تاريخ',
+                          onPressed: () => _pickDate(provider),
+                          icon: const Icon(Icons.calendar_month),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            _debounce?.cancel();
+    _searchController.clear();
+                            provider.setSelectedDate(DateTime.now());
+                          },
+                          child: const ArabicText('اليوم'),
+                        ),
+                        PopupMenuButton<String>(
+                          tooltip: 'تصدير الجدول',
+                          enabled: !_exporting && !provider.isLoading,
+                          onSelected: (value) => _export(value, provider),
+                          itemBuilder: (_) => const [
+                            PopupMenuItem(
+                              value: 'pdf',
+                              child: ArabicText('حفظ الجدول للطباعة'),
+                            ),
+                            PopupMenuItem(
+                              value: 'ics',
+                              child: ArabicText('إضافة المواعيد للتقويم'),
+                            ),
+                          ],
+                          icon: _exporting
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.ios_share),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: ArabicText(
+                        provider.searchQuery.isEmpty
+                            ? 'الجلسات: ${sessions.length}'
+                            : 'نتائج البحث في كل التواريخ: ${sessions.length}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textLight,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // --- جدول الجلسات (تصميم الأجندة الورقية) ---
+                  Expanded(
+                    child: isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : provider.errorMessage != null
+                        ? _buildErrorState(provider.errorMessage!)
+                        : sessions.isEmpty
+                        ? _buildEmptyState(provider)
+                        : Container(
+                            margin: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: AppColors.primaryOlive,
+                                width: 2,
+                              ),
+                              color: Colors.white,
+                            ),
+                            child: Column(
                               children: [
-                                _headerCell('المحكمة / الدائرة', flex: 3),
-                                _headerCell('الموكل / الخصم', flex: 4),
-                                _headerCell('القرار / السابقة', flex: 3),
+                                // رأس الجدول
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.tableHeaderGreen,
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: AppColors.primaryOlive,
+                                        width: 2,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      _headerCell('المحكمة / الدائرة', flex: 3),
+                                      _headerCell('الموكل / الخصم', flex: 4),
+                                      _headerCell('القرار / السابقة', flex: 3),
+                                    ],
+                                  ),
+                                ),
+                                // محتوى الجدول
+                                Expanded(
+                                  child: ListView.separated(
+                                    itemCount: sessions.length,
+                                    separatorBuilder: (_, _) => const Divider(
+                                      height: 1,
+                                      thickness: 0.5,
+                                      color: AppColors.tableBorder,
+                                    ),
+                                    itemBuilder: (context, index) {
+                                      return _buildSessionRow(sessions[index]);
+                                    },
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                          // محتوى الجدول
-                          Expanded(
-                            child: ListView.separated(
-                              itemCount: sessions.length,
-                              separatorBuilder: (_, _) => const Divider(
-                                height: 1,
-                                thickness: 0.5,
-                                color: AppColors.tableBorder,
-                              ),
-                              itemBuilder: (context, index) {
-                                return _buildSessionRow(sessions[index]);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -337,7 +430,8 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                 ArabicText(
                   weekday,
 
-                  style: GoogleFonts.amiri(
+                  style: TextStyle(
+                    fontFamily: 'Amiri',
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textDark,
@@ -398,7 +492,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
     required String month,
   }) {
     return Container(
-      width: 70,
+      width: 82,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.primaryOlive, width: 1.5),
@@ -416,7 +510,8 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
           ArabicText(
             day,
 
-            style: GoogleFonts.amiri(
+            style: TextStyle(
+              fontFamily: 'Amiri',
               fontSize: 26,
               fontWeight: FontWeight.bold,
               color: AppColors.primaryOlive,
@@ -425,8 +520,9 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
           ),
           ArabicText(
             month,
+            textAlign: TextAlign.center,
+            maxLines: 2,
             style: const TextStyle(fontSize: 11, color: AppColors.textDark),
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -439,7 +535,8 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
       child: ArabicText(
         text,
         textAlign: TextAlign.center,
-        style: GoogleFonts.amiri(
+        style: TextStyle(
+          fontFamily: 'Amiri',
           fontSize: 14,
           fontWeight: FontWeight.bold,
           color: AppColors.primaryOlive,
@@ -494,7 +591,8 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                       ),
                     ArabicText(
                       session.courtName,
-                      style: GoogleFonts.amiri(
+                      style: TextStyle(
+                        fontFamily: 'Amiri',
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                       ),
@@ -529,6 +627,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                     children: [
                       RichText(
                         text: TextSpan(
+                          style: const TextStyle(fontFamily: 'Cairo'),
                           children: [
                             const TextSpan(
                               text: 'موكل: ',
@@ -551,6 +650,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                       const SizedBox(height: 2),
                       RichText(
                         text: TextSpan(
+                          style: const TextStyle(fontFamily: 'Cairo'),
                           children: [
                             const TextSpan(
                               text: 'خصم: ',
@@ -584,7 +684,8 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                     if (session.decision.isNotEmpty)
                       ArabicText(
                         session.decision,
-                        style: GoogleFonts.amiri(
+                        style: TextStyle(
+                          fontFamily: 'Amiri',
                           fontSize: 12,
                           color: AppColors.accentRed,
                           fontWeight: FontWeight.bold,

@@ -70,11 +70,12 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
       });
     } catch (e) {
       debugPrint('Personal data load failed: $e');
-      if (mounted)
+      if (mounted) {
         setState(() {
           _loading = false;
           _error = 'تعذر تحميل البيانات الشخصية. أعد المحاولة.';
         });
+      }
     }
   }
 
@@ -82,8 +83,9 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
     if (_saving ||
         _loading ||
         _error != null ||
-        !(_form.currentState?.validate() ?? false))
+        !(_form.currentState?.validate() ?? false)) {
       return;
+    }
     setState(() => _saving = true);
     try {
       final row = <String, dynamic>{
@@ -106,7 +108,7 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
       }
     } catch (e) {
       debugPrint('Personal data save failed: $e');
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: ArabicText(
@@ -114,6 +116,7 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
             ),
           ),
         );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -122,13 +125,17 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
   String? _validate(String key, String? value) {
     final text = ArabicFormat.normalize(value?.trim() ?? '');
     if (text.isEmpty) return null;
-    if (key == 'email' && !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(text))
+    if (key == 'email' &&
+        !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(text)) {
       return 'أدخل بريدًا إلكترونيًا صحيحًا';
+    }
     if (['home_tel', 'office_tel', 'mobile'].contains(key) &&
-        !RegExp(r'^\+?[0-9 ()-]{7,25}$').hasMatch(text))
+        !RegExp(r'^\+?[0-9 ()-]{7,25}$').hasMatch(text)) {
       return 'أدخل رقم هاتف صحيحًا';
-    if (key == 'id_card_no' && !RegExp(r'^\d{14}$').hasMatch(text))
+    }
+    if (key == 'id_card_no' && !RegExp(r'^\d{14}$').hasMatch(text)) {
       return 'الرقم القومي مكوّن من ١٤ رقمًا';
+    }
     return null;
   }
 

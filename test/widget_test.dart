@@ -1,3 +1,6 @@
+import 'package:agenda/core/database/database_helper.dart';
+import 'package:agenda/core/utils/arabic_format.dart';
+import 'package:agenda/features/daily_schedule/data/repositories/session_repository.dart';
 // Tests for the judicial agenda application.
 //
 // These tests verify the actual application features, not the Flutter
@@ -14,6 +17,20 @@ import 'package:agenda/features/daily_schedule/data/models/session_model.dart';
 import 'package:agenda/features/daily_schedule/presentation/providers/session_provider.dart';
 
 void main() {
+  late DatabaseHelper helper;
+  late SessionProvider testProvider;
+  setUp(() async {
+    helper = DatabaseHelper.forTesting(inMemoryDatabasePath);
+    testProvider = SessionProvider(
+      repository: SessionRepository(database: helper),
+      autoLoad: false,
+    );
+    await testProvider.loadSessions();
+  });
+  tearDown(() async {
+    await helper.close();
+  });
+
   // Initialize sqflite_ffi for desktop/test environments.
   setUpAll(() {
     sqfliteFfiInit();
@@ -27,26 +44,22 @@ void main() {
     testWidgets('MyApp renders without errors', (WidgetTester tester) async {
       await tester.pumpWidget(
         MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => SessionProvider()),
-          ],
-          child: const MyApp(),
+          providers: [ChangeNotifierProvider(create: (_) => testProvider)],
+          child: const MyApp(enableLock: false),
         ),
       );
       // Give time for async init (database, provider).
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // The app should render the bottom navigation bar.
-      expect(find.byType(BottomNavigationBar), findsOneWidget);
+      expect(find.byType(ChoiceChip), findsNWidgets(5));
     });
 
     testWidgets('MyApp has correct title', (WidgetTester tester) async {
       await tester.pumpWidget(
         MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => SessionProvider()),
-          ],
-          child: const MyApp(),
+          providers: [ChangeNotifierProvider(create: (_) => testProvider)],
+          child: const MyApp(enableLock: false),
         ),
       );
       await tester.pumpAndSettle(const Duration(seconds: 3));
@@ -63,16 +76,14 @@ void main() {
     testWidgets('renders Arabic UI elements', (WidgetTester tester) async {
       await tester.pumpWidget(
         MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => SessionProvider()),
-          ],
-          child: const MyApp(),
+          providers: [ChangeNotifierProvider(create: (_) => testProvider)],
+          child: const MyApp(enableLock: false),
         ),
       );
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // The daily schedule label should appear in the navigation bar.
-      expect(find.text('اليومية'), findsOneWidget);
+      expect(find.text('الجلسات اليومية'), findsWidgets);
 
       // The schedule header text.
       expect(find.text('جدول الجلسات اليومية'), findsOneWidget);
@@ -82,23 +93,22 @@ void main() {
       expect(find.text('ميلادي'), findsOneWidget);
     });
 
-    testWidgets('navigation bar has all tabs in Arabic',
-        (WidgetTester tester) async {
+    testWidgets('navigation bar has all tabs in Arabic', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => SessionProvider()),
-          ],
-          child: const MyApp(),
+          providers: [ChangeNotifierProvider(create: (_) => testProvider)],
+          child: const MyApp(enableLock: false),
         ),
       );
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      expect(find.text('اليومية'), findsOneWidget);
-      expect(find.text('البيانات'), findsOneWidget);
+      expect(find.text('الجلسات اليومية'), findsWidgets);
+      expect(find.text('البيانات الشخصية'), findsOneWidget);
       expect(find.text('التوكيلات'), findsOneWidget);
       expect(find.text('المحضرين'), findsOneWidget);
-      expect(find.text('إدارية'), findsOneWidget);
+      expect(find.text('الأعمال الإدارية'), findsOneWidget);
     });
   });
 
@@ -106,23 +116,19 @@ void main() {
   // 3. Empty sessions are handled correctly
   // -------------------------------------------------------------------------
   group('Empty sessions', () {
-    testWidgets('shows empty state message when no sessions exist',
-        (WidgetTester tester) async {
+    testWidgets('shows empty state message when no sessions exist', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => SessionProvider()),
-          ],
-          child: const MyApp(),
+          providers: [ChangeNotifierProvider(create: (_) => testProvider)],
+          child: const MyApp(enableLock: false),
         ),
       );
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // The empty state should show a message.
-      expect(
-        find.text('لا توجد جلسات مسجلة لهذا اليوم'),
-        findsOneWidget,
-      );
+      expect(find.text('لا توجد جلسات مسجلة لهذا اليوم'), findsOneWidget);
 
       // There should be a button to add a session.
       expect(find.text('إضافة جلسة'), findsOneWidget);
@@ -136,31 +142,33 @@ void main() {
     testWidgets('forward arrow changes date', (WidgetTester tester) async {
       await tester.pumpWidget(
         MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => SessionProvider()),
-          ],
-          child: const MyApp(),
+          providers: [ChangeNotifierProvider(create: (_) => testProvider)],
+          child: const MyApp(enableLock: false),
         ),
       );
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // Get the provider.
-      final provider =
-          tester.element(find.byType(MaterialApp)).read<SessionProvider>();
+      final provider = tester
+          .element(find.byType(MaterialApp))
+          .read<SessionProvider>();
       final initialDate = provider.selectedDate;
 
       // Tap the forward arrow (arrow_back_ios moves forward in the UI).
       final forwardButton = find.byIcon(Icons.arrow_back_ios);
       expect(forwardButton, findsOneWidget);
-      await tester.tap(forwardButton);
+      await tester.runAsync(() async {
+        await tester.tap(forwardButton);
+        final deadline = DateTime.now().add(const Duration(seconds: 5));
+        while (provider.isLoading && DateTime.now().isBefore(deadline)) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+      });
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // The date should have changed to the next day.
       final newDate = provider.selectedDate;
-      expect(
-        newDate.difference(initialDate).inDays,
-        equals(1),
-      );
+      expect(newDate.difference(initialDate).inDays, equals(1));
     });
   });
 
@@ -391,25 +399,38 @@ void main() {
 
       // Update
       final updatedMap = restored.copyWith(decision: 'حكم').toMap();
-      final updateCount =
-          await db.update('sessions', updatedMap, where: 'id = ?', whereArgs: [id]);
+      final updateCount = await db.update(
+        'sessions',
+        updatedMap,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
       expect(updateCount, 1);
 
       // Verify update
-      final updatedRows =
-          await db.query('sessions', where: 'id = ?', whereArgs: [id]);
+      final updatedRows = await db.query(
+        'sessions',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
       final updated = Session.fromMap(updatedRows.first);
       expect(updated.decision, 'حكم');
       expect(updated.createdAt, restored.createdAt); // createdAt preserved
 
       // Delete
-      final deleteCount =
-          await db.delete('sessions', where: 'id = ?', whereArgs: [id]);
+      final deleteCount = await db.delete(
+        'sessions',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
       expect(deleteCount, 1);
 
       // Verify deletion
-      final afterDelete =
-          await db.query('sessions', where: 'id = ?', whereArgs: [id]);
+      final afterDelete = await db.query(
+        'sessions',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
       expect(afterDelete, isEmpty);
 
       await db.close();
@@ -483,14 +504,13 @@ void main() {
   // 7. Required fields are validated
   // -------------------------------------------------------------------------
   group('Form validation', () {
-    testWidgets('required fields show validation errors',
-        (WidgetTester tester) async {
+    testWidgets('required fields show validation errors', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => SessionProvider()),
-          ],
-          child: const MyApp(),
+          providers: [ChangeNotifierProvider(create: (_) => testProvider)],
+          child: const MyApp(enableLock: false),
         ),
       );
       await tester.pumpAndSettle(const Duration(seconds: 3));
@@ -504,6 +524,16 @@ void main() {
       expect(find.text('إضافة جلسة جديدة'), findsOneWidget);
 
       // Try to save without filling any fields.
+      await tester.scrollUntilVisible(
+        find.text('حفظ الجلسة'),
+        300,
+        scrollable: find
+            .descendant(
+              of: find.byType(ListView).last,
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
       await tester.tap(find.text('حفظ الجلسة'));
       await tester.pumpAndSettle();
 
@@ -591,16 +621,15 @@ void main() {
       expect(AppDateUtils.getHijriMonth(date), isNot('--'));
       expect(AppDateUtils.getHijriYear(date), isNot('--'));
 
-      final hijriYear = int.parse(AppDateUtils.getHijriYear(date));
+      final hijriYear = int.parse(
+        ArabicFormat.normalize(AppDateUtils.getHijriYear(date)),
+      );
       expect(hijriYear, lessThan(1500));
       expect(hijriYear, greaterThan(1400));
     });
 
     test('invalid month throws ArgumentError', () {
-      expect(
-        () => AppDateUtils.hijriMonthLength(1448, 0),
-        throwsArgumentError,
-      );
+      expect(() => AppDateUtils.hijriMonthLength(1448, 0), throwsArgumentError);
       expect(
         () => AppDateUtils.hijriMonthLength(1448, 13),
         throwsArgumentError,

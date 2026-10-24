@@ -1,3 +1,7 @@
+import 'core/utils/agenda_localizations.dart';
+import 'core/widgets/app_lock.dart';
+import 'features/settings/presentation/screens/settings_screen.dart';
+
 import 'package:agenda/core/widgets/arabic_text.dart';
 
 import 'dart:io' show Platform;
@@ -40,7 +44,8 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool enableLock;
+  const MyApp({super.key, this.enableLock = true});
 
   @override
   Widget build(BuildContext context) {
@@ -48,10 +53,14 @@ class MyApp extends StatelessWidget {
       title: 'الأجندة القضائية',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      locale: const Locale('ar'),
-      supportedLocales: const [Locale('ar'), Locale('en')],
+      locale: const Locale('ar', 'EG'),
+      builder: (context, child) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: enableLock ? AppLock(child: child!) : child!,
+      ),
+      supportedLocales: const [Locale('ar', 'EG')],
       localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
+        AgendaLocalizationsDelegate(),
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
@@ -71,6 +80,7 @@ class JudicialAgendaShell extends StatefulWidget {
 class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
   late final PageController _pageController;
   int _currentIndex = 0;
+  int _dataGeneration = 0;
 
   final List<String> _titles = [
     'الجلسات اليومية',
@@ -112,6 +122,7 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.paperCream,
       body: SafeArea(
         child: Column(
@@ -121,9 +132,12 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
             // التنقل بالإيماءات (Swipe)
             Expanded(
               child: PageView(
+                key: ValueKey(_dataGeneration),
                 controller: _pageController,
                 onPageChanged: (index) => setState(() => _currentIndex = index),
-                children: _screens,
+                children: _screens
+                    .map((screen) => _KeepAlivePage(child: screen))
+                    .toList(),
               ),
             ),
             // مؤشر الصفحات السفلي
@@ -142,6 +156,25 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
         children: [
           Row(
             children: [
+              IconButton(
+                tooltip: 'الحماية والنسخ الاحتياطي',
+                icon: const Icon(Icons.settings_outlined),
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SettingsScreen(
+                        onRestored: () {
+                          if (!mounted) return;
+                          context.read<SessionProvider>().loadSessions();
+                          if (_pageController.hasClients) _pageController.jumpToPage(0);
+                          setState(() { _dataGeneration++; _currentIndex = 0; });
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
               // الخط الذهبي الأيسر
               Container(
                 width: 3,
@@ -172,36 +205,26 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
             ],
           ),
           const SizedBox(height: 16),
-          // مؤشر التنقل السريع (نقاط قابلة للضغط)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              _screens.length,
-              (index) => _buildNavDot(index),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: List.generate(
+                _titles.length,
+                (index) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: ChoiceChip(
+                    label: ArabicText(
+                      _titles[index],
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    selected: _currentIndex == index,
+                    onSelected: (_) => _navigateToPage(index),
+                  ),
+                ),
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  /// نقاط التنقل النقية
-  Widget _buildNavDot(int index) {
-    final isActive = index == _currentIndex;
-    return GestureDetector(
-      onTap: () => _navigateToPage(index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        margin: const EdgeInsets.symmetric(horizontal: 6),
-        width: isActive ? 24 : 8,
-        height: 8,
-        decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.primaryOlive
-              : AppColors.primaryOlive.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(4),
-        ),
       ),
     );
   }
@@ -219,5 +242,23 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
         ),
       ),
     );
+  }
+}
+
+class _KeepAlivePage extends StatefulWidget {
+  final Widget child;
+  const _KeepAlivePage({required this.child});
+  @override
+  State<_KeepAlivePage> createState() => _KeepAlivePageState();
+}
+
+class _KeepAlivePageState extends State<_KeepAlivePage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

@@ -91,8 +91,9 @@ class PasswordCipher {
     bits: 256,
   ).deriveKey(secretKey: SecretKey(utf8.encode(password)), nonce: salt);
   static Future<String> encrypt(String text, String password) async {
-    if (password.length < 10)
+    if (password.length < 10) {
       throw const FormatException('استخدم كلمة مرور من عشرة أحرف على الأقل');
+    }
     final random = Random.secure();
     final salt = List<int>.generate(16, (_) => random.nextInt(256));
     final box = await _cipher.encrypt(
@@ -114,8 +115,9 @@ class PasswordCipher {
     }
     final salt = base64Decode(json['salt'] as String);
     final data = base64Decode(json['data'] as String);
-    if (salt.length != 16 || data.length < 28)
+    if (salt.length != 16 || data.length < 28) {
       throw const FormatException('ملف غير صالح');
+    }
     final box = SecretBox.fromConcatenation(
       data,
       nonceLength: 12,
@@ -144,8 +146,9 @@ class PasswordCipher {
   }
 
   static Future<void> removeLock(String password) async {
-    if (!await unlock(password))
+    if (!await unlock(password)) {
       throw const FormatException('كلمة المرور غير صحيحة');
+    }
     await SecretVault._storage.delete(key: 'agenda_lock_v1');
   }
 }

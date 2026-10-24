@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
@@ -8,7 +7,9 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData get lightTheme {
-    final baseTextTheme = GoogleFonts.cairoTextTheme();
+    final baseTextTheme = ThemeData.light().textTheme.apply(
+      fontFamily: 'Cairo',
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -28,7 +29,8 @@ class AppTheme {
         foregroundColor: AppColors.textDark,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: GoogleFonts.amiri(
+        titleTextStyle: TextStyle(
+          fontFamily: 'Amiri',
           fontSize: 24,
           fontWeight: FontWeight.bold,
           color: AppColors.textDark,
