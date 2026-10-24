@@ -4,7 +4,6 @@ import 'package:agenda/core/security/secret_vault.dart';
 
 import 'dart:convert' as convert;
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
