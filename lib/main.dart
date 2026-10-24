@@ -1,8 +1,12 @@
-﻿import 'dart:io' show Platform;
+import 'package:agenda/core/widgets/arabic_text.dart';
+
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+
 import 'core/theme/app_theme.dart';
 import 'core/theme/app_colors.dart';
 import 'features/daily_schedule/presentation/providers/session_provider.dart';
@@ -16,21 +20,20 @@ import 'features/admin_work/presentation/screens/admin_work_screen.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
-void main() {
-  // تهيئة قاعدة البيانات لجميع المنصات
+Future<void> main() async {
+  // تهيئة قاعدة البيانات لجميع المنصات (يجب أن تكون async للويب)
+  WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {
     // استخدام SQLite Web FFI للويب
-    databaseFactory = databaseFactoryFfiWeb;
+    // تجنب مشكلة SharedWorker في وضع التصحيح باستخدام التنفيذ المباشر
+    databaseFactory = databaseFactoryFfiWebNoWebWorker;
   } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
-
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => SessionProvider()),
-      ],
+      providers: [ChangeNotifierProvider(create: (_) => SessionProvider())],
       child: const MyApp(),
     ),
   );
@@ -65,8 +68,7 @@ class JudicialAgendaShell extends StatefulWidget {
   State<JudicialAgendaShell> createState() => _JudicialAgendaShellState();
 }
 
-class _JudicialAgendaShellState extends State<JudicialAgendaShell>
-    with SingleTickerProviderStateMixin {
+class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
   late final PageController _pageController;
   int _currentIndex = 0;
 
@@ -116,7 +118,6 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell>
           children: [
             // شريط العنوان الأنيق
             _buildMinimalistHeader(),
-            
             // التنقل بالإيماءات (Swipe)
             Expanded(
               child: PageView(
@@ -125,7 +126,6 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell>
                 children: _screens,
               ),
             ),
-            
             // مؤشر الصفحات السفلي
             _buildPageIndicator(),
           ],
@@ -150,19 +150,15 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell>
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.secondaryGold,
-                      AppColors.primaryOlive,
-                    ],
+                    colors: [AppColors.secondaryGold, AppColors.primaryOlive],
                   ),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               const SizedBox(width: 12),
-              
               // العنوان بخط أميري
               Expanded(
-                child: Text(
+                child: ArabicText(
                   _titles[_currentIndex],
                   style: const TextStyle(
                     fontFamily: 'Amiri',
@@ -175,9 +171,7 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell>
               ),
             ],
           ),
-          
           const SizedBox(height: 16),
-          
           // مؤشر التنقل السريع (نقاط قابلة للضغط)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -203,7 +197,9 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell>
         width: isActive ? 24 : 8,
         height: 8,
         decoration: BoxDecoration(
-          color: isActive ? AppColors.primaryOlive : AppColors.primaryOlive.withOpacity(0.2),
+          color: isActive
+              ? AppColors.primaryOlive
+              : AppColors.primaryOlive.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(4),
         ),
       ),
@@ -218,7 +214,7 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell>
         width: 60,
         height: 2,
         decoration: BoxDecoration(
-          color: AppColors.secondaryGold.withOpacity(0.5),
+          color: AppColors.secondaryGold.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(1),
         ),
       ),

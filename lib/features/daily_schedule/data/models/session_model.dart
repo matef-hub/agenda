@@ -34,8 +34,8 @@ class Session {
     required this.sessionDate,
     DateTime? createdAt,
     DateTime? updatedAt,
-  })  : createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 
   /// تحويل كائن Session إلى Map لحفظه في قاعدة البيانات
   Map<String, dynamic> toMap() {
@@ -78,8 +78,12 @@ class Session {
       decision: map['decision'] as String? ?? '',
       notes: map['notes'] as String? ?? '',
       sessionDate: DateTime.parse(map['session_date'] as String),
-      createdAt: DateTime.parse(map['created_at'] as String),
-      updatedAt: DateTime.parse(map['updated_at'] as String),
+      createdAt:
+          DateTime.tryParse(map['created_at'] as String? ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(map['updated_at'] as String? ?? '') ??
+          DateTime.now(),
     );
   }
 

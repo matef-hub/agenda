@@ -1,84 +1,95 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+
+import '../../../../core/utils/arabic_format.dart';
 import '../../data/models/session_model.dart';
 import '../../data/repositories/session_repository.dart';
 
-/// Manages the state for the daily session schedule.
-///
-/// Loads sessions for the selected date from the SQLite database via
-/// [SessionRepository] and exposes them to the UI via [ChangeNotifier].
 class SessionProvider extends ChangeNotifier {
-  final SessionRepository _repository = SessionRepository();
+  final SessionRepository _repository;
   List<Session> _sessions = [];
   bool _isLoading = false;
+  bool _disposed = false;
+  int _request = 0;
   String? _errorMessage;
-  DateTime _selectedDate = DateTime.now();
-
-  List<Session> get sessions => _sessions;
+  String _query = '';
+  DateTime _selectedDate = ArabicFormat.day(DateTime.now());
+  List<Session> get sessions => List.unmodifiable(_sessions);
   bool get isLoading => _isLoading;
-
-  /// The most recent error message, or null if the last operation succeeded.
   String? get errorMessage => _errorMessage;
   DateTime get selectedDate => _selectedDate;
+  String get searchQuery => _query;
 
-  SessionProvider() {
+  SessionProvider({SessionRepository? repository, bool autoLoad = true})
+    : _repository = repository ?? SessionRepository() {
+    if (autoLoad) loadSessions();
+  }
+  void setSelectedDate(DateTime date) {
+    _selectedDate = ArabicFormat.day(date);
+    _query = '';
     loadSessions();
   }
 
-  void setSelectedDate(DateTime date) {
-    _selectedDate = date;
+  void search(String query) {
+    _query = query.trim();
     loadSessions();
+  }
+
+  void _notify() {
+    if (!_disposed) notifyListeners();
   }
 
   Future<void> loadSessions() async {
+    if (_disposed) return;
+    final request = ++_request;
+    final date = _selectedDate;
+    final query = _query;
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
-
+    _notify();
     try {
-      _sessions = await _repository.getSessionsForDate(_selectedDate);
+      final result = query.isEmpty
+          ? await _repository.getSessionsForDate(date)
+          : await _repository.searchSessions(query);
+      if (_disposed || request != _request) return;
+      _sessions = result;
     } catch (e) {
-      debugPrint('Error loading sessions: $e');
-      _errorMessage = 'فشل تحميل الجلسات: $e';
+      if (_disposed || request != _request) return;
+      debugPrint('Session load failed: $e');
+      _errorMessage = 'تعذر تحميل الجلسات. أعد المحاولة.';
       _sessions = [];
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (!_disposed && request == _request) {
+        _isLoading = false;
+        _notify();
+      }
     }
   }
 
-  Future<void> addSession(Session session) async {
+  Future<bool> _write(Future<int> Function() operation) async {
+    if (_disposed) return false;
     try {
       _errorMessage = null;
-      await _repository.insertSession(session);
+      if (await operation() != 1) throw StateError('Record no longer exists');
       await loadSessions();
+      return true;
     } catch (e) {
-      debugPrint('Error adding session: $e');
-      _errorMessage = 'فشل إضافة الجلسة: $e';
-      notifyListeners();
+      debugPrint('Session write failed: $e');
+      _errorMessage = 'تعذر حفظ التغيير. أعد المحاولة.';
+      _notify();
+      return false;
     }
   }
 
-  Future<void> updateSession(Session session) async {
-    try {
-      _errorMessage = null;
-      await _repository.updateSession(session);
-      await loadSessions();
-    } catch (e) {
-      debugPrint('Error updating session: $e');
-      _errorMessage = 'فشل تحديث الجلسة: $e';
-      notifyListeners();
-    }
-  }
-
-  Future<void> deleteSession(int id) async {
-    try {
-      _errorMessage = null;
-      await _repository.deleteSession(id);
-      await loadSessions();
-    } catch (e) {
-      debugPrint('Error deleting session: $e');
-      _errorMessage = 'فشل حذف الجلسة: $e';
-      notifyListeners();
-    }
+  Future<bool> addSession(Session session) =>
+      _write(() async => await _repository.insertSession(session) > 0 ? 1 : 0);
+  Future<bool> updateSession(Session session) =>
+      _write(() => _repository.updateSession(session));
+  Future<bool> deleteSession(int id) =>
+      _write(() => _repository.deleteSession(id));
+  @override
+  void dispose() {
+    _disposed = true;
+    _request++;
+    super.dispose();
   }
 }

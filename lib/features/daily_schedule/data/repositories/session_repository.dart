@@ -1,8 +1,11 @@
+import '../../../../core/utils/arabic_format.dart';
 import '../../../../core/database/database_helper.dart';
 import '../models/session_model.dart';
 
 class SessionRepository {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  final DatabaseHelper _dbHelper;
+  SessionRepository({DatabaseHelper? database})
+    : _dbHelper = database ?? DatabaseHelper();
 
   // إضافة جلسة جديدة
   Future<int> insertSession(Session session) async {
@@ -11,24 +14,17 @@ class SessionRepository {
 
   // جلب جميع الجلسات ليوم معين
   Future<List<Session>> getSessionsForDate(DateTime date) async {
-    // تنسيق التاريخ للمقارنة (YYYY-MM-DD)
-    final String dateStr = date.toIso8601String().split('T')[0];
-    
-    // استخدام LIKE للمقارنة لأن session_date مخزن كـ ISO8601 string
-    // أو يمكننا مقارنة الجزء الأول فقط.
-    // بما أننا نخزن ISO8601 كامل، سنستخدم substr أو like.
-    // الطريقة الأبسط والأكثر موثوقية مع SQLite هي مقارنة النصوص إذا كان التنسيق ثابتاً.
-    // لكن toIso8601String يعطي وقتاً أيضاً.
-    // الحل: جلب كل شيء وتصفية في Dart، أو استخدام query مع where clause دقيق.
-    // لنفترض أننا نريد الكفاءة، سنستخدم where clause على التاريخ.
-    // ملاحظة: session_date في قاعدة البيانات هو TEXT (ISO8601).
-    // مثال: 2026-10-22T10:00:00.000
-    // نريد كل ما يبدأ بـ 2026-10-22
-    
+    // استخدام نطاق تاريخي (Range Query) للاستفادة من الفهارس (Indexes)
+    // بدلاً من LIKE الذي يمنع استخدام الفهرس ويسبب بطئاً مع زيادة البيانات.
+    final String dateStrStart = ArabicFormat.dateKey(date);
+    final String dateStrEnd = ArabicFormat.dateKey(
+      ArabicFormat.shiftDay(date, 1),
+    );
+
     final List<Map<String, dynamic>> maps = await _dbHelper.queryWhere(
       'sessions',
-      "session_date LIKE ?",
-      ['$dateStr%'],
+      'session_date >= ? AND session_date < ?',
+      [dateStrStart, dateStrEnd],
     );
 
     return List.generate(maps.length, (i) {
@@ -59,12 +55,14 @@ class SessionRepository {
   Future<int> deleteSession(int id) async {
     return await _dbHelper.delete('sessions', id);
   }
-  
+
   // البحث عن جلسات (باسم الموكل أو رقم القضية)
   Future<List<Session>> searchSessions(String query) async {
+    query = ArabicFormat.normalize(query);
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'sessions',
+      orderBy: 'session_date ASC, court_name ASC, id ASC',
       where: 'client_name LIKE ? OR case_number LIKE ? OR court_name LIKE ?',
       whereArgs: ['%$query%', '%$query%', '%$query%'],
     );

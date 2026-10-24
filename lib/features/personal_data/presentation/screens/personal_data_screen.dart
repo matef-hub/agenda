@@ -1,176 +1,231 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+
 import '../../../../core/database/database_helper.dart';
+import '../../../../core/security/secret_vault.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/arabic_format.dart';
+import '../../../../core/widgets/arabic_text.dart';
 
 class PersonalDataScreen extends StatefulWidget {
-  const PersonalDataScreen({super.key});
-
+  final DatabaseHelper? database;
+  const PersonalDataScreen({super.key, this.database});
   @override
   State<PersonalDataScreen> createState() => _PersonalDataScreenState();
 }
 
 class _PersonalDataScreenState extends State<PersonalDataScreen> {
-  final _dbHelper = DatabaseHelper();
-  final _formKey = GlobalKey<FormState>();
-  
-  // Controllers
-  final _nameCtrl = TextEditingController();
-  final _homeAddrCtrl = TextEditingController();
-  final _officeAddrCtrl = TextEditingController();
-  final _homeTelCtrl = TextEditingController();
-  final _officeTelCtrl = TextEditingController();
-  final _mobileCtrl = TextEditingController();
-  final _idCardCtrl = TextEditingController();
-  final _passportCtrl = TextEditingController();
-  final _carLicenseCtrl = TextEditingController();
-  final _drivingLicenseCtrl = TextEditingController();
-  final _bankAccountCtrl = TextEditingController();
-  final _creditCardCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
-
-  bool _isLoading = true;
-  int? _recordId;
-
+  static const _fields = {
+    'name': 'اسم المحامي',
+    'home_address': 'عنوان المنزل',
+    'office_address': 'عنوان المكتب',
+    'home_tel': 'تليفون المنزل',
+    'office_tel': 'تليفون المكتب',
+    'mobile': 'رقم الموبايل',
+    'id_card_no': 'الرقم القومي',
+    'passport_no': 'رقم جواز السفر',
+    'car_license_no': 'رقم رخصة السيارة',
+    'driving_license_no': 'رقم رخصة القيادة',
+    'bank_account_no': 'رقم الحساب البنكي',
+    'credit_card_no': 'رقم كارت الائتمان (اختياري)',
+    'email': 'البريد الإلكتروني',
+  };
+  late final _db = widget.database ?? DatabaseHelper();
+  final _form = GlobalKey<FormState>();
+  final _controllers = {
+    for (final key in _fields.keys) key: TextEditingController(),
+  };
+  bool _loading = true, _saving = false, _reveal = false, _dirty = false;
+  String? _error;
+  int? _id;
   @override
   void initState() {
     super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    final data = await _dbHelper.queryAll('personal_info');
-    if (data.isNotEmpty) {
-      final row = data.first;
-      setState(() {
-        _recordId = row['id'] as int?;
-        _nameCtrl.text = row['name'] ?? '';
-        _homeAddrCtrl.text = row['home_address'] ?? '';
-        _officeAddrCtrl.text = row['office_address'] ?? '';
-        _homeTelCtrl.text = row['home_tel'] ?? '';
-        _officeTelCtrl.text = row['office_tel'] ?? '';
-        _mobileCtrl.text = row['mobile'] ?? '';
-        _idCardCtrl.text = row['id_card_no'] ?? '';
-        _passportCtrl.text = row['passport_no'] ?? '';
-        _carLicenseCtrl.text = row['car_license_no'] ?? '';
-        _drivingLicenseCtrl.text = row['driving_license_no'] ?? '';
-        _bankAccountCtrl.text = row['bank_account_no'] ?? '';
-        _creditCardCtrl.text = row['credit_card_no'] ?? '';
-        _emailCtrl.text = row['email'] ?? '';
-        _isLoading = false;
-      });
-    } else {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _saveData() async {
-    if (!_formKey.currentState!.validate()) return;
-    
-    final data = {
-      'name': _nameCtrl.text,
-      'home_address': _homeAddrCtrl.text,
-      'office_address': _officeAddrCtrl.text,
-      'home_tel': _homeTelCtrl.text,
-      'office_tel': _officeTelCtrl.text,
-      'mobile': _mobileCtrl.text,
-      'id_card_no': _idCardCtrl.text,
-      'passport_no': _passportCtrl.text,
-      'car_license_no': _carLicenseCtrl.text,
-      'driving_license_no': _drivingLicenseCtrl.text,
-      'bank_account_no': _bankAccountCtrl.text,
-      'credit_card_no': _creditCardCtrl.text,
-      'email': _emailCtrl.text,
-      'updated_at': DateTime.now().toIso8601String(),
-    };
-
-    if (_recordId != null) {
-      await _dbHelper.update('personal_info', data, _recordId!);
-    } else {
-      final id = await _dbHelper.insert('personal_info', data);
-      setState(() => _recordId = id);
-    }
-    
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم حفظ البيانات بنجاح')),
-      );
-    }
+    _load();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('البيانات الشخصية'),
-        backgroundColor: AppColors.paperCream,
-        foregroundColor: AppColors.accentRed,
-        elevation: 0,
-        actions: [
-          IconButton(icon: const Icon(Icons.save), onPressed: _saveData),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Form(
-              key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  // Header Image Style
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    decoration: BoxDecoration(
-                      border: Border(bottom: BorderSide(color: AppColors.secondaryGold, width: 2)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.account_circle, size: 60, color: AppColors.primaryOlive),
-                        const SizedBox(width: 16),
-                        Text(
-                          'الأجندة القضائية',
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primaryOlive),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildField(_nameCtrl, 'الاسم / Name'),
-                  _buildField(_homeAddrCtrl, 'عنوان المنزل / Home Address'),
-                  _buildField(_officeAddrCtrl, 'عنوان المكتب / Office Address'),
-                  const Divider(height: 32),
-                  _buildField(_homeTelCtrl, 'تليفون المنزل / Home Tel', keyboardType: TextInputType.phone),
-                  _buildField(_officeTelCtrl, 'تليفون المكتب / Office Tel', keyboardType: TextInputType.phone),
-                  _buildField(_mobileCtrl, 'رقم الموبايل / Mobile', keyboardType: TextInputType.phone),
-                  const Divider(height: 32),
-                  _buildField(_idCardCtrl, 'رقم البطاقة / ID Card No'),
-                  _buildField(_passportCtrl, 'رقم جواز السفر / Passport No'),
-                  _buildField(_carLicenseCtrl, 'رقم رخصة السيارة / Car License No'),
-                  _buildField(_drivingLicenseCtrl, 'رقم رخصة القيادة / Driving License No'),
-                  const Divider(height: 32),
-                  _buildField(_bankAccountCtrl, 'رقم حساب البنك / Bank Account No'),
-                  _buildField(_creditCardCtrl, 'رقم كارت الائتمان / Credit Card No'),
-                  _buildField(_emailCtrl, 'البريد الإلكتروني / E-mail', keyboardType: TextInputType.emailAddress),
-                ],
-              ),
-            ),
-    );
+  void dispose() {
+    for (final c in _controllers.values) {
+      c.dispose();
+    }
+    super.dispose();
   }
 
-  Widget _buildField(TextEditingController controller, String label, {TextInputType? keyboardType}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          labelText: label,
-          border: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.tableBorder)),
-          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.tableBorder)),
-          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primaryOlive, width: 2)),
-          labelStyle: TextStyle(color: AppColors.textDark, fontSize: 14),
-        ),
-      ),
-    );
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final rows = await _db.queryAll('personal_info');
+      if (!mounted) return;
+      final row = rows.isEmpty ? <String, dynamic>{} : rows.first;
+      for (final key in _fields.keys) {
+        _controllers[key]!.text = ArabicFormat.digits(row[key] ?? '');
+      }
+      setState(() {
+        _id = row['id'] as int?;
+        _loading = false;
+        _dirty = false;
+      });
+    } catch (e) {
+      debugPrint('Personal data load failed: $e');
+      if (mounted)
+        setState(() {
+          _loading = false;
+          _error = 'تعذر تحميل البيانات الشخصية. أعد المحاولة.';
+        });
+    }
   }
+
+  Future<void> _save() async {
+    if (_saving ||
+        _loading ||
+        _error != null ||
+        !(_form.currentState?.validate() ?? false))
+      return;
+    setState(() => _saving = true);
+    try {
+      final row = <String, dynamic>{
+        for (final key in _fields.keys)
+          key: ArabicFormat.normalize(_controllers[key]!.text.trim()),
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+      final id = _id;
+      if (id == null) {
+        final inserted = await _db.insert('personal_info', row);
+        if (mounted) _id = inserted;
+      } else if (await _db.update('personal_info', row, id) != 1) {
+        throw StateError('Missing record');
+      }
+      if (mounted) {
+        setState(() => _dirty = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: ArabicText('تم حفظ البيانات بنجاح')),
+        );
+      }
+    } catch (e) {
+      debugPrint('Personal data save failed: $e');
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: ArabicText(
+              'تعذر الحفظ. بياناتك ما زالت موجودة؛ أعد المحاولة.',
+            ),
+          ),
+        );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  String? _validate(String key, String? value) {
+    final text = ArabicFormat.normalize(value?.trim() ?? '');
+    if (text.isEmpty) return null;
+    if (key == 'email' && !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(text))
+      return 'أدخل بريدًا إلكترونيًا صحيحًا';
+    if (['home_tel', 'office_tel', 'mobile'].contains(key) &&
+        !RegExp(r'^\+?[0-9 ()-]{7,25}$').hasMatch(text))
+      return 'أدخل رقم هاتف صحيحًا';
+    if (key == 'id_card_no' && !RegExp(r'^\d{14}$').hasMatch(text))
+      return 'الرقم القومي مكوّن من ١٤ رقمًا';
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const ArabicText('البيانات الشخصية'),
+      actions: [
+        IconButton(
+          tooltip: 'حفظ البيانات',
+          onPressed: _loading || _saving || _error != null ? null : _save,
+          icon: _saving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.save),
+        ),
+      ],
+    ),
+    body: _loading
+        ? const Center(child: CircularProgressIndicator())
+        : _error != null
+        ? Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ArabicText(_error!),
+                TextButton(
+                  onPressed: _load,
+                  child: const ArabicText('إعادة المحاولة'),
+                ),
+              ],
+            ),
+          )
+        : Form(
+            key: _form,
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                const Icon(
+                  Icons.account_circle,
+                  size: 56,
+                  color: AppColors.primaryOlive,
+                ),
+                const SizedBox(height: 12),
+                if (_dirty)
+                  const ArabicText(
+                    'توجد تعديلات لم تُحفظ',
+                    style: TextStyle(color: AppColors.accentRed),
+                  ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const ArabicText('إظهار البيانات الحساسة'),
+                  value: _reveal,
+                  onChanged: (value) => setState(() => _reveal = value),
+                ),
+                for (final entry in _fields.entries)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: TextFormField(
+                      controller: _controllers[entry.key],
+                      enabled: !_saving,
+                      inputFormatters: const [ArabicDigitsFormatter()],
+                      obscureText:
+                          SecretVault.sensitive.contains(entry.key) && !_reveal,
+                      enableSuggestions: !SecretVault.sensitive.contains(
+                        entry.key,
+                      ),
+                      autocorrect: false,
+                      textDirection: entry.key == 'email'
+                          ? TextDirection.ltr
+                          : TextDirection.rtl,
+                      keyboardType: entry.key == 'email'
+                          ? TextInputType.emailAddress
+                          : [
+                              'mobile',
+                              'office_tel',
+                              'home_tel',
+                            ].contains(entry.key)
+                          ? TextInputType.phone
+                          : TextInputType.text,
+                      decoration: InputDecoration(labelText: entry.value),
+                      onChanged: (_) {
+                        if (!_dirty) setState(() => _dirty = true);
+                      },
+                      validator: (value) => _validate(entry.key, value),
+                    ),
+                  ),
+                FilledButton.icon(
+                  onPressed: _saving ? null : _save,
+                  icon: const Icon(Icons.save),
+                  label: ArabicText(_saving ? 'جارٍ الحفظ…' : 'حفظ البيانات'),
+                ),
+              ],
+            ),
+          ),
+  );
 }

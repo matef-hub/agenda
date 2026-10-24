@@ -1,5 +1,10 @@
+import 'package:agenda/core/widgets/arabic_text.dart';
+
+import '../../../../core/utils/arabic_format.dart';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../data/models/session_model.dart';
 import '../providers/session_provider.dart';
@@ -8,8 +13,11 @@ class AddEditSessionScreen extends StatefulWidget {
   final Session? session; // إذا كانت null، فهي إضافة جديدة
   final DateTime initialDate;
 
-  const AddEditSessionScreen(
-      {super.key, this.session, required this.initialDate});
+  const AddEditSessionScreen({
+    super.key,
+    this.session,
+    required this.initialDate,
+  });
 
   @override
   State<AddEditSessionScreen> createState() => _AddEditSessionScreenState();
@@ -42,25 +50,46 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
     // تهيئة الـ controllers بالبيانات الموجودة (في حالة التعديل) أو فارغة
     _courtController = TextEditingController(text: widget.session?.courtName);
     _circuitController = TextEditingController(text: widget.session?.circuit);
-    _caseNumberController =
-        TextEditingController(text: widget.session?.caseNumber);
+    _caseNumberController = TextEditingController(
+      text: widget.session?.caseNumber,
+    );
     _caseYearController = TextEditingController(
       text: widget.session != null
           ? widget.session!.caseYear.toString()
           : DateTime.now().year.toString(),
     );
-    _clientNameController =
-        TextEditingController(text: widget.session?.clientName);
-    _clientCapacityController =
-        TextEditingController(text: widget.session?.clientCapacity);
-    _opponentNameController =
-        TextEditingController(text: widget.session?.opponentName);
-    _opponentCapacityController =
-        TextEditingController(text: widget.session?.opponentCapacity);
-    _prevSessionController =
-        TextEditingController(text: widget.session?.previousSession);
+    _clientNameController = TextEditingController(
+      text: widget.session?.clientName,
+    );
+    _clientCapacityController = TextEditingController(
+      text: widget.session?.clientCapacity,
+    );
+    _opponentNameController = TextEditingController(
+      text: widget.session?.opponentName,
+    );
+    _opponentCapacityController = TextEditingController(
+      text: widget.session?.opponentCapacity,
+    );
+    _prevSessionController = TextEditingController(
+      text: widget.session?.previousSession,
+    );
     _decisionController = TextEditingController(text: widget.session?.decision);
     _notesController = TextEditingController(text: widget.session?.notes);
+    for (final controller in [
+      _courtController,
+      _circuitController,
+      _caseNumberController,
+      _caseYearController,
+      _clientNameController,
+      _clientCapacityController,
+      _opponentNameController,
+      _opponentCapacityController,
+      _prevSessionController,
+      _decisionController,
+      _notesController,
+    ]) {
+      controller.text = ArabicFormat.digits(controller.text);
+    }
   }
 
   @override
@@ -86,11 +115,15 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
     setState(() => _isSaving = true);
 
     try {
-      final caseYear = int.tryParse(_caseYearController.text);
+      final caseYear = int.tryParse(
+        ArabicFormat.normalize(_caseYearController.text.trim()),
+      );
       if (caseYear == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('سنة الدعوى يجب أن تكون رقماً صحيحاً')),
+            const SnackBar(
+              content: ArabicText('سنة الدعوى يجب أن تكون رقماً صحيحاً'),
+            ),
           );
         }
         return;
@@ -98,34 +131,42 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
 
       final session = Session(
         id: widget.session?.id,
-        courtName: _courtController.text.trim(),
-        circuit: _circuitController.text.trim(),
-        caseNumber: _caseNumberController.text.trim(),
+        courtName: ArabicFormat.normalize(_courtController.text.trim()),
+        circuit: ArabicFormat.normalize(_circuitController.text.trim()),
+        caseNumber: ArabicFormat.normalize(_caseNumberController.text.trim()),
         caseYear: caseYear,
-        clientName: _clientNameController.text.trim(),
-        clientCapacity: _clientCapacityController.text.trim(),
-        opponentName: _opponentNameController.text.trim(),
-        opponentCapacity: _opponentCapacityController.text.trim(),
-        previousSession: _prevSessionController.text.trim(),
-        decision: _decisionController.text.trim(),
-        notes: _notesController.text.trim(),
+        clientName: ArabicFormat.normalize(_clientNameController.text.trim()),
+        clientCapacity: ArabicFormat.normalize(
+          _clientCapacityController.text.trim(),
+        ),
+        opponentName: ArabicFormat.normalize(
+          _opponentNameController.text.trim(),
+        ),
+        opponentCapacity: ArabicFormat.normalize(
+          _opponentCapacityController.text.trim(),
+        ),
+        previousSession: ArabicFormat.normalize(
+          _prevSessionController.text.trim(),
+        ),
+        decision: ArabicFormat.normalize(_decisionController.text.trim()),
+        notes: ArabicFormat.normalize(_notesController.text.trim()),
         sessionDate: _selectedDate,
         createdAt: widget.session?.createdAt, // Preserve original createdAt
       );
 
       final provider = context.read<SessionProvider>();
-      if (widget.session == null) {
-        await provider.addSession(session);
-      } else {
-        await provider.updateSession(session);
-      }
-
-      if (provider.errorMessage != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(provider.errorMessage!)),
-        );
-      } else if (mounted) {
+      final saved = widget.session == null
+          ? await provider.addSession(session)
+          : await provider.updateSession(session);
+      if (!mounted) return;
+      if (saved) {
         Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: ArabicText(provider.errorMessage ?? 'تعذر حفظ الجلسة'),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -136,10 +177,10 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2200),
     );
-    if (picked != null && picked != _selectedDate) {
+    if (mounted && picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
       });
@@ -150,8 +191,9 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(widget.session == null ? 'إضافة جلسة جديدة' : 'تعديل الجلسة'),
+        title: ArabicText(
+          widget.session == null ? 'إضافة جلسة جديدة' : 'تعديل الجلسة',
+        ),
         backgroundColor: AppColors.primaryOlive,
         foregroundColor: Colors.white,
       ),
@@ -162,9 +204,8 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
           children: [
             // اختيار التاريخ
             ListTile(
-              title: const Text('تاريخ الجلسة'),
-              subtitle:
-                  Text(_selectedDate.toLocal().toString().split(' ')[0]),
+              title: const ArabicText('تاريخ الجلسة'),
+              subtitle: ArabicText(ArabicFormat.date(_selectedDate)),
               trailing: const Icon(Icons.calendar_today),
               onTap: () => _selectDate(context),
               shape: RoundedRectangleBorder(
@@ -176,23 +217,29 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
 
             // حقول الإدخال
             _buildRequiredField(
-                _courtController, 'اسم المحكمة', 'مثال: محكمة القاهرة الجديدة'),
+              _courtController,
+              'اسم المحكمة',
+              'مثال: محكمة القاهرة الجديدة',
+            ),
             const SizedBox(height: 8),
             _buildRequiredField(
-                _circuitController, 'الدائرة', 'مثال: الدائرة 5 مدني'),
+              _circuitController,
+              'الدائرة',
+              'مثال: الدائرة 5 مدني',
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   flex: 2,
                   child: _buildRequiredField(
-                      _caseNumberController, 'رقم الدعوى', '1234'),
+                    _caseNumberController,
+                    'رقم الدعوى',
+                    '1234',
+                  ),
                 ),
                 const SizedBox(width: 8),
-                Expanded(
-                  flex: 1,
-                  child: _buildCaseYearField(),
-                ),
+                Expanded(flex: 1, child: _buildCaseYearField()),
               ],
             ),
             const SizedBox(height: 16),
@@ -200,30 +247,51 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
             const SizedBox(height: 8),
 
             _buildRequiredField(
-                _clientNameController, 'اسم الموكل', 'الاسم الكامل'),
+              _clientNameController,
+              'اسم الموكل',
+              'الاسم الكامل',
+            ),
             const SizedBox(height: 8),
             _buildOptionalField(
-                _clientCapacityController, 'صفته', 'مدعي / مدعى عليه / متهم'),
+              _clientCapacityController,
+              'صفته',
+              'مدعي / مدعى عليه / متهم',
+            ),
             const SizedBox(height: 16),
 
             _buildRequiredField(
-                _opponentNameController, 'اسم الخصم', 'الاسم الكامل'),
+              _opponentNameController,
+              'اسم الخصم',
+              'الاسم الكامل',
+            ),
             const SizedBox(height: 8),
-            _buildOptionalField(_opponentCapacityController, 'صفته',
-                'مدعي / مدعى عليه / سلطة اتهام'),
+            _buildOptionalField(
+              _opponentCapacityController,
+              'صفته',
+              'مدعي / مدعى عليه / سلطة اتهام',
+            ),
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 8),
 
-            _buildOptionalField(_prevSessionController, 'الجلسة السابقة',
-                'تاريخ وقرار الجلسة السابقة'),
+            _buildOptionalField(
+              _prevSessionController,
+              'الجلسة السابقة',
+              'تاريخ وقرار الجلسة السابقة',
+            ),
             const SizedBox(height: 8),
             _buildOptionalField(
-                _decisionController, 'القرار الحالي', 'تأجيل / حجز / حكم'),
+              _decisionController,
+              'القرار الحالي',
+              'تأجيل / حجز / حكم',
+            ),
             const SizedBox(height: 8),
             _buildOptionalField(
-                _notesController, 'ملاحظات', 'أي ملاحظات إضافية',
-                maxLines: 3),
+              _notesController,
+              'ملاحظات',
+              'أي ملاحظات إضافية',
+              maxLines: 3,
+            ),
 
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -233,17 +301,22 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Icon(Icons.save),
-              label:
-                  Text('حفظ الجلسة', style: const TextStyle(fontSize: 18)),
+              label: ArabicText(
+                'حفظ الجلسة',
+                style: const TextStyle(fontSize: 18),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryOlive,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
           ],
@@ -254,9 +327,15 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
 
   /// Builds a required text form field with validation.
   Widget _buildRequiredField(
-      TextEditingController controller, String label, String hint,
-      {TextInputType? keyboardType, int maxLines = 1}) {
+    TextEditingController controller,
+    String label,
+    String hint, {
+    TextInputType? keyboardType,
+    int maxLines = 1,
+  }) {
     return TextFormField(
+      inputFormatters: const [ArabicDigitsFormatter()],
+      textDirection: TextDirection.rtl,
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
@@ -276,9 +355,15 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
 
   /// Builds an optional text form field without validation.
   Widget _buildOptionalField(
-      TextEditingController controller, String label, String hint,
-      {TextInputType? keyboardType, int maxLines = 1}) {
+    TextEditingController controller,
+    String label,
+    String hint, {
+    TextInputType? keyboardType,
+    int maxLines = 1,
+  }) {
     return TextFormField(
+      inputFormatters: const [ArabicDigitsFormatter()],
+      textDirection: TextDirection.rtl,
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
@@ -293,10 +378,12 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
   /// Builds the case year field with numeric validation.
   Widget _buildCaseYearField() {
     return TextFormField(
+      inputFormatters: const [ArabicDigitsFormatter()],
+      textDirection: TextDirection.rtl,
       controller: _caseYearController,
       decoration: InputDecoration(
         labelText: 'السنة',
-        hintText: DateTime.now().year.toString(),
+        hintText: ArabicFormat.digits(DateTime.now().year),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       ),
       keyboardType: TextInputType.number,
@@ -304,11 +391,11 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
         if (value == null || value.trim().isEmpty) {
           return 'هذا الحقل مطلوب';
         }
-        final year = int.tryParse(value.trim());
+        final year = int.tryParse(ArabicFormat.normalize(value.trim()));
         if (year == null) {
           return 'أدخل رقماً صحيحاً';
         }
-        if (year < 1900 || year > 2100) {
+        if (year < 1800 || year > 2200) {
           return 'سنة غير صالحة';
         }
         return null;

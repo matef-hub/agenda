@@ -1,3 +1,5 @@
+import 'arabic_format.dart';
+
 import 'package:intl/intl.dart';
 
 /// Utility class for handling Gregorian and Hijri date formatting.
@@ -19,8 +21,6 @@ import 'package:intl/intl.dart';
 /// - **Saudi Arabia (Umm al-Qura)**: The official calendar is based on
 ///   astronomical computation and may differ by ±1–2 days from the tabular
 ///   calendar, especially around month boundaries.
-/// - **Egypt**: Courts and government generally follow the tabular Hijri
-///   calendar, which closely matches this implementation.
 /// - **Other countries**: Actual moon sighting may cause ±1 day variation
 ///   compared to any computed calendar.
 ///
@@ -44,7 +44,7 @@ class AppDateUtils {
 
   /// Formats a DateTime to Gregorian day (e.g., "15").
   static String getGregorianDay(DateTime date) {
-    return DateFormat('d').format(date);
+    return ArabicFormat.digits(date.day);
   }
 
   /// Formats a DateTime to Gregorian month name in Arabic (e.g., "يناير").
@@ -54,7 +54,7 @@ class AppDateUtils {
 
   /// Formats a DateTime to Gregorian year (e.g., "2026").
   static String getGregorianYear(DateTime date) {
-    return DateFormat('yyyy').format(date);
+    return ArabicFormat.digits(date.year);
   }
 
   /// Formats a DateTime to Arabic weekday name (e.g., "الخميس").
@@ -72,12 +72,14 @@ class AppDateUtils {
   /// This is a pure-Dart, offline computation with no external dependencies.
   static HijriDate gregorianToHijri(DateTime date) {
     final jdn = _gregorianToJdn(date.year, date.month, date.day);
+    if (jdn < _islamicEpochJdn)
+      throw ArgumentError('Date precedes Hijri epoch');
     return _jdnToHijri(jdn);
   }
 
   /// Returns the Hijri day number as a string (e.g., "2").
   static String getHijriDay(DateTime date) {
-    return gregorianToHijri(date).day.toString();
+    return ArabicFormat.digits(gregorianToHijri(date).day);
   }
 
   /// Returns the Hijri month name in Arabic (e.g., "ربيع الآخر").
@@ -87,7 +89,7 @@ class AppDateUtils {
 
   /// Returns the Hijri year as a string (e.g., "1448").
   static String getHijriYear(DateTime date) {
-    return gregorianToHijri(date).year.toString();
+    return ArabicFormat.digits(gregorianToHijri(date).year);
   }
 
   // ---------------------------------------------------------------------------
@@ -188,6 +190,13 @@ class AppDateUtils {
   /// Useful for verifying round-trip accuracy and for converting
   /// user-entered Hijri dates.
   static DateTime hijriToGregorian(int hYear, int hMonth, int hDay) {
+    if (hYear < 1 ||
+        hMonth < 1 ||
+        hMonth > 12 ||
+        hDay < 1 ||
+        hDay > hijriMonthLength(hYear, hMonth)) {
+      throw ArgumentError('Invalid Hijri date');
+    }
     final jdn = _hijriToJdn(hYear, hMonth, hDay);
     return _jdnToGregorian(jdn);
   }
@@ -263,11 +272,7 @@ class HijriDate {
   /// The Hijri day of the month (1–30).
   final int day;
 
-  const HijriDate({
-    required this.year,
-    required this.month,
-    required this.day,
-  });
+  const HijriDate({required this.year, required this.month, required this.day});
 
   /// Returns the Arabic name of the Hijri month.
   String get monthName {
@@ -276,7 +281,7 @@ class HijriDate {
   }
 
   @override
-  String toString() => '$day $monthName $year هـ';
+  String toString() => ArabicFormat.digits('$day $monthName $year هـ');
 
   @override
   bool operator ==(Object other) =>
