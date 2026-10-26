@@ -96,7 +96,12 @@ class SessionRepository {
     final rows = await db.query(
       'sessions',
       where: 'court_name = ? AND case_number = ? AND case_year = ? AND circuit = ?',
-      whereArgs: [session.courtName, session.caseNumber, session.caseYear],
+      whereArgs: [
+        session.courtName,
+        session.caseNumber,
+        session.caseYear,
+        session.circuit,
+      ],
       orderBy: 'session_date DESC, id DESC',
     );
     return rows.map(Session.fromMap).toList();
