@@ -15,7 +15,6 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/app_colors.dart';
 import 'features/daily_schedule/presentation/providers/session_provider.dart';
 import 'features/daily_schedule/presentation/screens/daily_schedule_screen.dart';
-import 'features/personal_data/presentation/screens/personal_data_screen.dart';
 import 'features/powers_of_attorney/presentation/screens/powers_of_attorney_screen.dart';
 import 'features/bailiffs/presentation/screens/bailiffs_screen.dart';
 import 'features/admin_work/presentation/screens/admin_work_screen.dart';
@@ -84,15 +83,13 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
 
   final List<String> _titles = [
     'الجلسات اليومية',
-    'البيانات الشخصية',
     'التوكيلات',
-    'المحضرين',
+    'أوراق المحضرين',
     'الأعمال الإدارية',
   ];
 
   final List<Widget> _screens = [
     const DailyScheduleScreen(),
-    const PersonalDataScreen(),
     const PowersOfAttorneyScreen(),
     const BailiffsScreen(),
     const AdminWorkScreen(),
@@ -156,9 +153,9 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
         children: [
           Row(
             children: [
-              IconButton(
-                tooltip: 'الحماية والنسخ الاحتياطي',
+              TextButton.icon(
                 icon: const Icon(Icons.settings_outlined),
+                label: const ArabicText('الإعدادات'),
                 onPressed: () async {
                   await Navigator.push(
                     context,
@@ -167,8 +164,13 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
                         onRestored: () {
                           if (!mounted) return;
                           context.read<SessionProvider>().loadSessions();
-                          if (_pageController.hasClients) _pageController.jumpToPage(0);
-                          setState(() { _dataGeneration++; _currentIndex = 0; });
+                          if (_pageController.hasClients) {
+                            _pageController.jumpToPage(0);
+                          }
+                          setState(() {
+                            _dataGeneration++;
+                            _currentIndex = 0;
+                          });
                         },
                       ),
                     ),
@@ -192,7 +194,7 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
               // العنوان بخط أميري
               Expanded(
                 child: ArabicText(
-                  _titles[_currentIndex],
+                  'الأجندة القضائية',
                   style: const TextStyle(
                     fontFamily: 'Amiri',
                     fontSize: 28,

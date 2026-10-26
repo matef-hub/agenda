@@ -1,5 +1,6 @@
 import 'package:agenda/core/database/database_helper.dart';
 import 'package:agenda/core/utils/arabic_format.dart';
+import 'package:agenda/core/widgets/arabic_text.dart';
 import 'package:agenda/features/daily_schedule/data/repositories/session_repository.dart';
 // Tests for the judicial agenda application.
 //
@@ -52,7 +53,7 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // The app should render the bottom navigation bar.
-      expect(find.byType(ChoiceChip), findsNWidgets(5));
+      expect(find.byType(ChoiceChip), findsNWidgets(4));
     });
 
     testWidgets('MyApp has correct title', (WidgetTester tester) async {
@@ -86,7 +87,7 @@ void main() {
       expect(find.text('الجلسات اليومية'), findsWidgets);
 
       // The schedule header text.
-      expect(find.text('جدول الجلسات اليومية'), findsOneWidget);
+      expect(find.text('الجلسات اليومية'), findsWidgets);
 
       // Hijri and Gregorian labels.
       expect(find.text('هجري'), findsOneWidget);
@@ -105,10 +106,21 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       expect(find.text('الجلسات اليومية'), findsWidgets);
-      expect(find.text('البيانات الشخصية'), findsOneWidget);
+      expect(find.text('البيانات الشخصية'), findsNothing);
       expect(find.text('التوكيلات'), findsOneWidget);
-      expect(find.text('المحضرين'), findsOneWidget);
+      expect(find.text('أوراق المحضرين'), findsOneWidget);
       expect(find.text('الأعمال الإدارية'), findsOneWidget);
+      expect(
+        tester
+            .widgetList<ChoiceChip>(find.byType(ChoiceChip))
+            .map((chip) => (chip.label as ArabicText).data),
+        ['الجلسات اليومية', 'التوكيلات', 'أوراق المحضرين', 'الأعمال الإدارية'],
+      );
+      await tester.tap(find.text('الإعدادات'));
+      await tester.pumpAndSettle();
+      expect(find.text('البيانات الشخصية'), findsOneWidget);
+      expect(find.text('حماية التطبيق'), findsOneWidget);
+      expect(find.text('النسخ الاحتياطي والاستعادة'), findsOneWidget);
     });
   });
 

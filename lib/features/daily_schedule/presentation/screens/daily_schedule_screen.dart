@@ -200,7 +200,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                         ),
 
                         ArabicText(
-                          'جدول الجلسات اليومية',
+                          'الجلسات اليومية',
 
                           style: TextStyle(
                             fontFamily: 'Amiri',

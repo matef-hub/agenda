@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:agenda/core/widgets/app_lock.dart';
+import 'package:agenda/core/theme/app_theme.dart';
 import 'package:agenda/core/security/secret_vault.dart';
 
 import 'dart:convert' as convert;
@@ -18,6 +19,9 @@ import 'package:agenda/core/database/database_helper.dart';
 import 'package:agenda/core/utils/agenda_localizations.dart';
 import 'package:agenda/core/widgets/record_table_screen.dart';
 import 'package:agenda/features/daily_schedule/data/models/session_model.dart';
+import 'package:agenda/features/daily_schedule/data/models/hearing_suggestion.dart';
+import 'package:agenda/features/daily_schedule/presentation/screens/add_edit_session_screen.dart';
+import 'package:agenda/features/daily_schedule/presentation/widgets/previous_hearing_lookup.dart';
 import 'package:agenda/features/daily_schedule/data/repositories/session_repository.dart';
 import 'package:agenda/features/daily_schedule/data/repositories/schedule_export.dart';
 import 'package:agenda/features/daily_schedule/presentation/providers/session_provider.dart';
@@ -29,6 +33,11 @@ class PreviewRepository extends SessionRepository {
   Future<List<Session>> getSessionsForDate(DateTime date) async => data;
   @override
   Future<List<Session>> searchSessions(String query) async => data;
+  @override
+  Future<List<HearingSuggestion>> findPreviousHearings(
+    String number,
+    String year,
+  ) async => HearingSuggestion.group(data);
 }
 
 Session previewSession() => Session(
@@ -48,6 +57,7 @@ Session previewSession() => Session(
 );
 
 Widget host(Widget child) => MaterialApp(
+  debugShowCheckedModeBanner: false,
   locale: const Locale('ar', 'EG'),
   supportedLocales: const [Locale('ar', 'EG')],
   localizationsDelegates: const [
@@ -55,7 +65,7 @@ Widget host(Widget child) => MaterialApp(
     GlobalWidgetsLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
   ],
-  theme: ThemeData(fontFamily: 'Cairo'),
+  theme: AppTheme.lightTheme,
   home: child,
 );
 
@@ -142,6 +152,71 @@ void main() {
       },
     );
   }
+
+  testWidgets(
+    'Assisted entry remains readable and retains selection while scrolling on a phone',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 844);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final repository = PreviewRepository([previewSession()]);
+      final key = GlobalKey();
+      await tester.pumpWidget(
+        RepaintBoundary(
+          key: key,
+          child: host(
+            AddEditSessionScreen(
+              initialDate: DateTime(2026, 10, 25),
+              repository: repository,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final number = find.byWidgetPredicate(
+        (w) => w is TextField && w.decoration?.labelText == 'رقم الدعوى',
+      );
+      await tester.enterText(number, '١٢٣٤');
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('retrieve-hearing')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('استخدام هذه البيانات'));
+      await tester.tap(find.text('استخدام هذه البيانات'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      final outerScroll = find
+          .descendant(of: find.byType(Form), matching: find.byType(Scrollable))
+          .first;
+      await tester.scrollUntilVisible(
+        find.text('حفظ الجلسة'),
+        400,
+        scrollable: outerScroll,
+      );
+      await tester.pumpAndSettle();
+      // The helper is now outside the viewport and must retain its selected source.
+      await tester.scrollUntilVisible(
+        find.byType(PreviousHearingLookup),
+        -400,
+        scrollable: outerScroll,
+      );
+      await tester.ensureVisible(find.byType(PreviousHearingLookup));
+      await tester.pumpAndSettle();
+      expect(find.text('مصدر البيانات المختار'), findsOneWidget);
+      expect(find.text('تقديم المستندات والمذكرات'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      final boundary =
+          key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      await tester.runAsync(() async {
+        final image = await boundary.toImage(pixelRatio: 2);
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+        final file = File('build/review/assisted-entry-390x844.png');
+        await file.parent.create(recursive: true);
+        await file.writeAsBytes(bytes!.buffer.asUint8List());
+        image.dispose();
+      });
+    },
+  );
 
   testWidgets('Calendar renders Arabic digits and parses Arabic date input', (
     tester,

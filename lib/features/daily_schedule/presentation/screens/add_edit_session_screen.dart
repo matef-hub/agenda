@@ -11,15 +11,18 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/models/session_model.dart';
 import '../providers/session_provider.dart';
+import '../widgets/previous_hearing_lookup.dart';
 
 class AddEditSessionScreen extends StatefulWidget {
   final Session? session; // إذا كانت null، فهي إضافة جديدة
   final DateTime initialDate;
+  final SessionRepository? repository;
 
   const AddEditSessionScreen({
     super.key,
     this.session,
     required this.initialDate,
+    this.repository,
   });
 
   @override
@@ -44,6 +47,24 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
 
   late DateTime _selectedDate;
   bool _isSaving = false;
+  late final _repository = widget.repository ?? SessionRepository();
+
+  void _lookupKeyChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _usePreviousDetails(Session source) {
+    for (final (controller, value) in [
+      (_courtController, source.courtName),
+      (_circuitController, source.circuit),
+      (_clientNameController, source.clientName),
+      (_opponentNameController, source.opponentName),
+    ]) {
+      if (controller.text.trim().isEmpty) {
+        controller.text = ArabicFormat.digits(value);
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -93,10 +114,16 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
     ]) {
       controller.text = ArabicFormat.digits(controller.text);
     }
+    if (widget.session == null) {
+      _caseNumberController.addListener(_lookupKeyChanged);
+      _caseYearController.addListener(_lookupKeyChanged);
+    }
   }
 
   @override
   void dispose() {
+    _caseNumberController.removeListener(_lookupKeyChanged);
+    _caseYearController.removeListener(_lookupKeyChanged);
     _courtController.dispose();
     _circuitController.dispose();
     _caseNumberController.dispose();
@@ -275,6 +302,9 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
           ),
           backgroundColor: AppColors.primaryOlive,
           foregroundColor: Colors.white,
+          titleTextStyle: Theme.of(context).appBarTheme.titleTextStyle
+              ?.copyWith(color: Colors.white),
+          iconTheme: const IconThemeData(color: Colors.white),
         ),
         body: Form(
           key: _formKey,
@@ -283,10 +313,11 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
             children: [
               // اختيار التاريخ
               ListTile(
+                key: const ValueKey('hearing-date'),
                 title: const ArabicText('تاريخ الجلسة'),
                 subtitle: ArabicText(ArabicFormat.date(_selectedDate)),
                 trailing: const Icon(Icons.calendar_today),
-                onTap: () => _selectDate(context),
+                onTap: _isSaving ? null : () => _selectDate(context),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                   side: BorderSide(color: AppColors.tableBorder),
@@ -295,18 +326,6 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
               const SizedBox(height: 16),
 
               // حقول الإدخال
-              _buildRequiredField(
-                _courtController,
-                'اسم المحكمة',
-                'مثال: محكمة القاهرة الجديدة',
-              ),
-              const SizedBox(height: 8),
-              _buildRequiredField(
-                _circuitController,
-                'الدائرة',
-                'مثال: الدائرة 5 مدني',
-              ),
-              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
@@ -322,6 +341,26 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
                 ],
               ),
               const SizedBox(height: 16),
+              if (widget.session == null)
+                PreviousHearingLookup(
+                  number: _caseNumberController.text,
+                  year: _caseYearController.text,
+                  date: _selectedDate,
+                  repository: _repository,
+                  onUse: _usePreviousDetails,
+                  enabled: !_isSaving,
+                ),
+              _buildRequiredField(
+                _courtController,
+                'اسم المحكمة',
+                'مثال: محكمة القاهرة الجديدة',
+              ),
+              const SizedBox(height: 8),
+              _buildRequiredField(
+                _circuitController,
+                'الدائرة',
+                'مثال: الدائرة 5 مدني',
+              ),
               const Divider(),
               const SizedBox(height: 8),
 

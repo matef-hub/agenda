@@ -1,11 +1,45 @@
 import '../../../../core/utils/arabic_format.dart';
 import '../../../../core/database/database_helper.dart';
 import '../models/session_model.dart';
+import '../models/hearing_suggestion.dart';
 
 class SessionRepository {
   final DatabaseHelper _dbHelper;
   SessionRepository({DatabaseHelper? database})
     : _dbHelper = database ?? DatabaseHelper();
+
+  // Identifiers passed here are internal column names, never user input.
+  static String _normalizedDigitsSql(String field) {
+    var result = field;
+    for (final digit in '٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹'.split('')) {
+      result = "replace($result, '$digit', '${ArabicFormat.normalize(digit)}')";
+    }
+    return result;
+  }
+
+  Future<List<HearingSuggestion>> findPreviousHearings(
+    String caseNumber,
+    String caseYear,
+  ) async {
+    final number = ArabicFormat.normalize(caseNumber).trim();
+    final year = int.tryParse(ArabicFormat.normalize(caseYear).trim());
+    if (number.isEmpty || year == null || year < 1800 || year > 2200) return [];
+    final db = await _dbHelper.database;
+    // SQLite's default trim removes only spaces. Match Dart's surrounding
+    // whitespace trimming for older records too, without rewriting them.
+    const whitespace =
+        ' \t\n\r\u000B\u000C\u0085\u00A0\u1680'
+        '\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A'
+        '\u2028\u2029\u202F\u205F\u3000\uFEFF';
+    final rows = await db.query(
+      'sessions',
+      where:
+          'case_year = ? AND trim(${_normalizedDigitsSql('case_number')}, ?) = ?',
+      whereArgs: [year, whitespace, number],
+      orderBy: 'session_date DESC, id DESC',
+    );
+    return HearingSuggestion.group(rows.map(Session.fromMap));
+  }
 
   // إضافة جلسة جديدة
   Future<int> insertSession(Session session) async {
@@ -69,22 +103,11 @@ class SessionRepository {
       'case_number',
       'court_name',
     ];
-    String normalized(String field) {
-      var result = field;
-      const arabic = '٠١٢٣٤٥٦٧٨٩';
-      const persian = '۰۱۲۳۴۵۶۷۸۹';
-      for (var i = 0; i < 10; i++) {
-        result =
-            "replace(replace($result, '${arabic[i]}', '$i'), '${persian[i]}', '$i')";
-      }
-      return result;
-    }
-
     final maps = await db.query(
       'sessions',
       orderBy: 'session_date ASC, court_name ASC, id ASC',
       where: fields
-          .map((field) => "${normalized(field)} LIKE ? ESCAPE '\\'")
+          .map((field) => "${_normalizedDigitsSql(field)} LIKE ? ESCAPE '\\'")
           .join(' OR '),
       whereArgs: fields.map((_) => '%$query%').toList(),
     );

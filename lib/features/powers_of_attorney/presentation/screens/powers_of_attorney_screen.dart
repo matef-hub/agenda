@@ -7,7 +7,7 @@ class PowersOfAttorneyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const RecordTableScreen(
     table: 'powers_of_attorney',
-    title: 'فهرس التوكيلات',
+    title: 'التوكيلات',
     singular: 'توكيل',
     empty: 'لا توجد توكيلات مسجلة',
     completion: false,

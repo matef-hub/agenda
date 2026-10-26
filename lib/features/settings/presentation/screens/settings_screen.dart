@@ -9,6 +9,7 @@ import '../../../../core/security/backup_service.dart';
 import '../../../../core/security/secret_vault.dart';
 import '../../../../core/utils/arabic_format.dart';
 import '../../../../core/widgets/arabic_text.dart';
+import '../../../personal_data/presentation/screens/personal_data_screen.dart';
 
 Future<String?> askPassword(
   BuildContext context, {
@@ -97,15 +98,73 @@ class _PasswordDialogState extends State<_PasswordDialog> {
   );
 }
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends StatelessWidget {
   final VoidCallback? onRestored;
-  const SettingsScreen({super.key, this.onRestored});
+  final DatabaseHelper? database;
+  const SettingsScreen({super.key, this.onRestored, this.database});
+
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const ArabicText('الإعدادات')),
+    body: ListView(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.person_outline),
+          title: const ArabicText('البيانات الشخصية'),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PersonalDataScreen(database: database),
+            ),
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.lock_outline),
+          title: const ArabicText('حماية التطبيق'),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const _SettingsToolsScreen(protection: true),
+            ),
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.backup_outlined),
+          title: const ArabicText('النسخ الاحتياطي والاستعادة'),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => _SettingsToolsScreen(
+                protection: false,
+                onRestored: onRestored,
+                database: database,
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
-  final _backup = BackupService(DatabaseHelper());
+class _SettingsToolsScreen extends StatefulWidget {
+  final bool protection;
+  final VoidCallback? onRestored;
+  final DatabaseHelper? database;
+  const _SettingsToolsScreen({
+    required this.protection,
+    this.onRestored,
+    this.database,
+  });
+  @override
+  State<_SettingsToolsScreen> createState() => _SettingsToolsScreenState();
+}
+
+class _SettingsToolsScreenState extends State<_SettingsToolsScreen> {
+  late final _backup = BackupService(widget.database ?? DatabaseHelper());
   bool _busy = false, _restored = false;
   String? _message;
   Future<void> _run(Future<void> Function() action) async {
@@ -141,7 +200,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
       final path = await FilePicker.saveFile(
         dialogTitle: 'حفظ نسخة احتياطية مشفرة',
-        fileName: 'أجندة-${ArabicFormat.digits(ArabicFormat.dateKey(DateTime.now()))}.agenda',
+        fileName:
+            'أجندة-${ArabicFormat.digits(ArabicFormat.dateKey(DateTime.now()))}.agenda',
         bytes: bytes,
       );
       if (mounted && path != null) {
@@ -255,7 +315,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     canPop: !_busy,
     child: Scaffold(
       appBar: AppBar(
-        title: const ArabicText('الحماية والنسخ الاحتياطي'),
+        title: ArabicText(
+          widget.protection ? 'حماية التطبيق' : 'النسخ الاحتياطي والاستعادة',
+        ),
         leading: IconButton(
           tooltip: 'رجوع',
           onPressed: _busy ? null : () => Navigator.pop(context, _restored),
@@ -265,40 +327,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const ArabicText(
-            'النسخ الاحتياطي',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const ArabicText(
-            'احفظ نسخة مشفرة خارج الجهاز، واستخدم كلمة مرور تحتفظ بها لاستعادتها.',
-          ),
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: _busy ? null : _export,
-            icon: const Icon(Icons.save_alt),
-            label: const ArabicText('حفظ نسخة احتياطية'),
-          ),
-          OutlinedButton.icon(
-            onPressed: _busy ? null : _restore,
-            icon: const Icon(Icons.restore),
-            label: const ArabicText('استعادة نسخة احتياطية'),
-          ),
-          const Divider(height: 32),
-          const ArabicText(
-            'قفل التطبيق',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const ArabicText(
-            'يطلب كلمة المرور عند الفتح والعودة من الخلفية. احتفظ بها؛ النسخ الاحتياطية لا تشمل كلمة مرور القفل.',
-          ),
-          OutlinedButton(
-            onPressed: _busy ? null : () => _lock(true),
-            child: const ArabicText('تفعيل أو تغيير كلمة المرور'),
-          ),
-          TextButton(
-            onPressed: _busy ? null : () => _lock(false),
-            child: const ArabicText('إلغاء القفل بكلمة المرور الحالية'),
-          ),
+          if (!widget.protection) ...[
+            const ArabicText(
+              'احفظ نسخة مشفرة خارج الجهاز، واستخدم كلمة مرور تحتفظ بها لاستعادتها.',
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: _busy ? null : _export,
+              icon: const Icon(Icons.save_alt),
+              label: const ArabicText('حفظ نسخة احتياطية'),
+            ),
+            OutlinedButton.icon(
+              onPressed: _busy ? null : _restore,
+              icon: const Icon(Icons.restore),
+              label: const ArabicText('استعادة نسخة احتياطية'),
+            ),
+          ],
+          if (widget.protection) ...[
+            const ArabicText(
+              'يطلب كلمة المرور عند الفتح والعودة من الخلفية. احتفظ بها؛ النسخ الاحتياطية لا تشمل كلمة مرور القفل.',
+            ),
+            OutlinedButton(
+              onPressed: _busy ? null : () => _lock(true),
+              child: const ArabicText('تفعيل أو تغيير كلمة المرور'),
+            ),
+            TextButton(
+              onPressed: _busy ? null : () => _lock(false),
+              child: const ArabicText('إلغاء القفل بكلمة المرور الحالية'),
+            ),
+          ],
           const Divider(height: 32),
           const ArabicText(
             'التاريخ الهجري حسابي وقد يختلف عن التقويم الرسمي. جميع تواريخ المواعيد تُحفظ بالتقويم الميلادي.',
