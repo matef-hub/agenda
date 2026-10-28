@@ -5,6 +5,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../../../../core/utils/arabic_format.dart';
+import '../../../../core/reports/office_report.dart';
+import '../../../../core/reports/session_report_columns.dart';
 import '../models/session_model.dart';
 
 class ScheduleExport {
@@ -12,6 +14,7 @@ class ScheduleExport {
     List<Session> sessions,
     DateTime date, {
     bool searchResults = false,
+    Map<String, dynamic> office = const {},
   }) async {
     final font = pw.Font.ttf(
       await rootBundle.load('assets/fonts/Amiri-Regular.ttf'),
@@ -40,6 +43,8 @@ class ScheduleExport {
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
+            OfficeReport.header(office, bold, font),
+            pw.SizedBox(height: 8),
               pw.Text(
                 'الأجندة القضائية',
                 style: pw.TextStyle(font: bold, fontSize: 22),
@@ -62,8 +67,9 @@ class ScheduleExport {
             ),
             columnWidths: {
               0: const pw.FlexColumnWidth(3),
-              1: const pw.FlexColumnWidth(4),
-              2: const pw.FlexColumnWidth(3),
+              1: const pw.FlexColumnWidth(3),
+              2: const pw.FlexColumnWidth(2),
+              3: const pw.FlexColumnWidth(4),
             },
             children: [
               pw.TableRow(
@@ -71,25 +77,11 @@ class ScheduleExport {
                 decoration: const pw.BoxDecoration(
                   color: PdfColor.fromInt(0xffa3b18a),
                 ),
-                children: [
-                  text('القرار / السابقة', header: true),
-                  text('الموكل / الخصم', header: true),
-                  text('المحكمة / الدائرة', header: true),
-                ],
+                children: SessionReportColumns.headers.map((value) => text(value, header: true)).toList(),
               ),
               for (final session in sessions)
                 pw.TableRow(
-                  children: [
-                    text(
-                      '${session.decision}\nالسابقة: ${session.previousSession}\n${session.notes}',
-                    ),
-                    text(
-                      'موكل: ${session.clientName}\nخصم: ${session.opponentName}',
-                    ),
-                    text(
-                      '${session.courtName}\n${session.circuit}\nرقم ${session.caseNumber} لسنة ${session.caseYear}\n${ArabicFormat.date(session.sessionDate)}',
-                    ),
-                  ],
+                  children: SessionReportColumns.cells(session.toMap()).map(text).toList(),
                 ),
             ],
           ),

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../database/database_helper.dart';
+import '../reports/report_action.dart';
 import '../theme/app_colors.dart';
 import '../utils/arabic_format.dart';
 import 'arabic_text.dart';
@@ -221,6 +222,11 @@ class _RecordTableScreenState extends State<RecordTableScreen> {
       elevation: 0,
       scrolledUnderElevation: 2,
       actions: [
+        IconButton(
+          tooltip: 'تصدير كل سجلات القسم للطباعة',
+          onPressed: () => exportOfficeReport(context, database: _db, section: widget.table),
+          icon: const Icon(Icons.picture_as_pdf_outlined),
+        ),
         IconButton(
           tooltip: _ascending ? 'الأحدث أولاً' : 'ترتيب بالاسم',
           onPressed: () {

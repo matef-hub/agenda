@@ -230,6 +230,11 @@ void main() {
       for (final table in DatabaseHelper.tables) {
         expect((await helper.queryAll(table)).length, 1);
       }
+      await helper.clearTable('sessions');
+      await service.restore(tables, selectedTables: {'admin_notes'});
+      expect(await helper.queryAll('sessions'), isEmpty);
+      expect((await helper.queryAll('admin_notes')).length, 1);
+      await service.restore(tables, selectedTables: {'sessions'});
       final payload = jsonDecode(
         await PasswordCipher.decrypt(encoded, password),
       ) as Map<String, dynamic>;

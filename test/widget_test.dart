@@ -166,8 +166,8 @@ void main() {
           .read<SessionProvider>();
       final initialDate = provider.selectedDate;
 
-      // Tap the forward arrow (arrow_back_ios moves forward in the UI).
-      final forwardButton = find.byIcon(Icons.arrow_back_ios);
+      // Tap the button that advances the selected date.
+      final forwardButton = find.byIcon(Icons.arrow_forward_ios);
       expect(forwardButton, findsOneWidget);
       await tester.runAsync(() async {
         await tester.tap(forwardButton);

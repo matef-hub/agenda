@@ -2,7 +2,12 @@ import 'package:file_picker/file_picker.dart';
 import '../../data/repositories/schedule_export.dart';
 import 'package:agenda/core/widgets/arabic_text.dart';
 import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/utils/arabic_format.dart';
+import '../../../../core/database/database_helper.dart';
+import '../../../../core/reports/office_report.dart';
+import '../../../../core/reports/report_action.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/utils/date_utils.dart';
@@ -25,6 +30,65 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
   final _deleting = <int>{};
   bool _exporting = false;
 
+  Future<void> _addToCalendar(SessionProvider provider) async {
+    if (_exporting) return;
+    final sessions = List<Session>.from(provider.sessions);
+    if (sessions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: ArabicText('لا توجد جلسات لإضافتها.')));
+      return;
+    }
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: ArabicText('الإضافة المباشرة متاحة على Android؛ استخدم تصدير ملف التقويم على هذا الجهاز.')));
+      return;
+    }
+    setState(() => _exporting = true);
+    try {
+      const channel = MethodChannel('com.ateflaw.agenda/calendar');
+      final calendars = await channel.invokeListMethod<Map<Object?, Object?>>('calendars') ?? [];
+      if (!mounted) return;
+      if (calendars.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: ArabicText('لا يوجد تقويم متاح للكتابة على الجهاز.')));
+        return;
+      }
+      final selected = await showDialog<Map<Object?, Object?>>(
+        context: context,
+        builder: (dialogContext) => SimpleDialog(
+          title: ArabicText('اختر التقويم لإضافة ${ArabicFormat.digits(sessions.length.toString())} جلسة'),
+          children: [
+            const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: ArabicText('ستُضاف الجلسات المعروضة كمواعيد طوال اليوم مع تذكير قبل يوم. تكرار الإضافة ينشئ مواعيد مكررة.')),
+            for (final calendar in calendars)
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(dialogContext, calendar),
+                child: ArabicText('${calendar['name']} — ${calendar['account']}'),
+              ),
+            SimpleDialogOption(onPressed: () => Navigator.pop(dialogContext), child: const ArabicText('إلغاء')),
+          ],
+        ),
+      );
+      if (selected == null || !mounted) return;
+      final events = sessions.map((s) {
+        final date = s.sessionDate;
+        final start = DateTime.utc(date.year, date.month, date.day);
+        return {
+          'title': ArabicFormat.digits('جلسة ${s.caseNumber} لسنة ${s.caseYear}'),
+          'description': ArabicFormat.digits('الموكل: ${s.clientName}\nالدائرة: ${s.circuit}\n${s.notes}'),
+          'location': s.courtName,
+          'start': start.millisecondsSinceEpoch,
+          'end': start.add(const Duration(days: 1)).millisecondsSinceEpoch,
+        };
+      }).toList();
+      await channel.invokeMethod<int>('addEvents', {'calendarId': selected['id'], 'events': events});
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: ArabicText('تمت إضافة الجلسات إلى التقويم.')));
+    } on PlatformException catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: ArabicText(error.code == 'permission_denied' ? 'لم يُمنح إذن الوصول إلى التقويم.' : 'تعذرت إضافة الجلسات إلى التقويم.')));
+    } catch (error) {
+      debugPrint('Calendar export failed: $error');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: ArabicText('تعذرت إضافة الجلسات إلى التقويم.')));
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
   Future<void> _export(String format, SessionProvider provider) async {
     if (_exporting) return;
     setState(() => _exporting = true);
@@ -35,6 +99,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
               sessions,
               provider.selectedDate,
               searchResults: provider.searchQuery.isNotEmpty,
+              office: await OfficeReport.office(DatabaseHelper()),
             )
           : ScheduleExport.calendar(sessions);
       final saved = await FilePicker.saveFile(
@@ -453,11 +518,17 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
             const SizedBox(width: 8),
             PopupMenuButton<String>(
               enabled: !_exporting && !provider.isLoading,
-              onSelected: (value) => _export(value, provider),
+              onSelected: (value) => value == 'device_calendar'
+                  ? _addToCalendar(provider)
+                  : value == 'all_sessions_pdf'
+                      ? exportOfficeReport(context, section: 'sessions')
+                      : _export(value, provider),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               itemBuilder: (_) => const [
-                PopupMenuItem(value: 'pdf', child: ArabicText('حفظ الجدول للطباعة (PDF)')),
-                PopupMenuItem(value: 'ics', child: ArabicText('إضافة لتقويم الجهاز (ICS)')),
+                PopupMenuItem(value: 'pdf', child: ArabicText('طباعة الجلسات المعروضة (PDF)')),
+                PopupMenuItem(value: 'all_sessions_pdf', child: ArabicText('طباعة كل الجلسات (PDF)')),
+                PopupMenuItem(value: 'device_calendar', child: ArabicText('إضافة إلى تقويم الجهاز')),
+                PopupMenuItem(value: 'ics', child: ArabicText('حفظ ملف التقويم (ICS)')),
               ],
               child: Container(
                 height: 44,
@@ -614,6 +685,17 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                     padding: const EdgeInsets.all(12),
                     child: Column(
                       children: [
+                        if (context.read<SessionProvider>().searchQuery.isNotEmpty)
+                          Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: ArabicText(
+                                'تاريخ الجلسة: ${ArabicFormat.date(session.sessionDate)}',
+                                style: const TextStyle(fontSize: 11, color: AppColors.accentRed, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -623,11 +705,6 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  if (context.read<SessionProvider>().searchQuery.isNotEmpty)
-                                    ArabicText(
-                                      ArabicFormat.date(session.sessionDate),
-                                      style: const TextStyle(fontSize: 10, color: AppColors.accentRed, fontWeight: FontWeight.bold),
-                                    ),
                                   ArabicText(
                                     session.courtName,
                                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.brand900, height: 1.2),

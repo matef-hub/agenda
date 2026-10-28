@@ -103,13 +103,17 @@ class BackupService {
   }
 
   /// Validate before calling. The transaction makes replacement all-or-nothing.
-  Future<void> restore(Map<String, List<Map<String, dynamic>>> tables) async {
+  Future<void> restore(Map<String, List<Map<String, dynamic>>> tables, {Set<String>? selectedTables}) async {
     if (tables.length != DatabaseHelper.tables.length ||
         !DatabaseHelper.tables.every(tables.containsKey)) {
       throw const FormatException('نسخة ناقصة');
     }
+    final selected = selectedTables ?? DatabaseHelper.tables.toSet();
+    if (selected.isEmpty || !DatabaseHelper.tables.toSet().containsAll(selected)) {
+      throw const FormatException('اختيار الأقسام غير صالح');
+    }
     final prepared = <String, List<Map<String, dynamic>>>{};
-    for (final table in DatabaseHelper.tables) {
+    for (final table in selected) {
       prepared[table] = [];
       for (final row in tables[table]!) {
         prepared[table]!.add(await database.prepare(table, row));
@@ -117,7 +121,7 @@ class BackupService {
     }
     final db = await database.database;
     await db.transaction((txn) async {
-      for (final table in DatabaseHelper.tables) {
+      for (final table in selected) {
         await txn.delete(table);
         for (final row in prepared[table]!) {
           await txn.insert(table, row);

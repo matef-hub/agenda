@@ -5,10 +5,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/database/database_helper.dart';
+import '../../../../core/reports/report_action.dart';
 import '../../../../core/security/backup_service.dart';
 import '../../../../core/security/secret_vault.dart';
 import '../../../../core/utils/arabic_format.dart';
 import '../../../../core/widgets/arabic_text.dart';
+import '../../../../core/widgets/developer_links.dart';
 import '../../../personal_data/presentation/screens/personal_data_screen.dart';
 
 Future<String?> askPassword(
@@ -133,6 +135,18 @@ class SettingsScreen extends StatelessWidget {
     appBar: AppBar(title: const ArabicText('الإعدادات')),
     body: ListView(
       children: [
+        const ListTile(
+          leading: Icon(Icons.code),
+          title: ArabicText('برمجة أ/ محمد عاطف'),
+          subtitle: DeveloperLinks(),
+        ),
+        ListTile(
+          leading: const Icon(Icons.print_outlined),
+          title: const ArabicText('تصدير البيانات للطباعة'),
+          subtitle: const ArabicText('كل الأقسام أو قسم واحد'),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: () => exportOfficeReport(context, database: database),
+        ),
         ListTile(
           leading: const Icon(Icons.person_outline),
           title: const ArabicText('البيانات الشخصية'),
@@ -257,7 +271,28 @@ class _SettingsToolsScreenState extends State<_SettingsToolsScreen> {
         password,
       );
       if (!mounted) return;
-      final count = tables.values.fold<int>(
+      const labels = {
+        'sessions': 'الجلسات اليومية',
+        'powers_of_attorney': 'التوكيلات',
+        'bailiff_papers': 'أوراق المحضرين',
+        'admin_notes': 'الأعمال الإدارية',
+        'personal_info': 'البيانات الشخصية',
+      };
+      final choice = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => SimpleDialog(
+          title: const ArabicText('اختر ما تريد استعادته'),
+          children: [
+            SimpleDialogOption(onPressed: () => Navigator.pop(dialogContext, 'all'), child: const ArabicText('كل الأقسام')),
+            for (final entry in labels.entries)
+              SimpleDialogOption(onPressed: () => Navigator.pop(dialogContext, entry.key), child: ArabicText(entry.value)),
+            SimpleDialogOption(onPressed: () => Navigator.pop(dialogContext), child: const ArabicText('إلغاء')),
+          ],
+        ),
+      );
+      if (choice == null || !mounted) return;
+      final selected = choice == 'all' ? DatabaseHelper.tables.toSet() : {choice};
+      final count = selected.map((table) => tables[table]!).fold<int>(
         0,
         (sum, rows) => sum + rows.length,
       );
@@ -266,7 +301,7 @@ class _SettingsToolsScreenState extends State<_SettingsToolsScreen> {
         builder: (dialogContext) => AlertDialog(
           title: const ArabicText('استعادة البيانات'),
           content: ArabicText(
-            'تحتوي النسخة على $count سجلًا. ستستبدل كل البيانات الحالية. احفظ نسخة من بياناتك الحالية أولًا إذا كنت تحتاجها. هل تريد الاستعادة؟',
+            'سيتم استعادة ${choice == 'all' ? 'كل الأقسام' : labels[choice]} ($count سجلًا) واستبدال البيانات الحالية في ${choice == 'all' ? 'كل الأقسام' : 'هذا القسم'}، حتى إذا كان فارغًا في النسخة. احفظ نسخة من بياناتك الحالية أولًا إذا كنت تحتاجها. هل تريد الاستعادة؟',
           ),
           actions: [
             TextButton(
@@ -281,7 +316,7 @@ class _SettingsToolsScreenState extends State<_SettingsToolsScreen> {
         ),
       );
       if (confirmed != true) return;
-      await _backup.restore(tables);
+      await _backup.restore(tables, selectedTables: selected);
       widget.onRestored?.call();
       if (mounted) {
         setState(() {

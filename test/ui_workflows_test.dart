@@ -132,10 +132,22 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.text('المحكمة / الدائرة', skipOffstage: false), findsOneWidget);
-        expect(find.text('الموكل / الخصم', skipOffstage: false), findsOneWidget);
-        expect(find.text('القرار / السابقة', skipOffstage: false), findsOneWidget);
-        expect(find.text('رقم ١٢٣٤ لسنة ٢٠٢٦', skipOffstage: false), findsOneWidget);
+        expect(
+          find.text('المحكمة / الدائرة', skipOffstage: false),
+          findsOneWidget,
+        );
+        expect(
+          find.text('الموكل / الخصم', skipOffstage: false),
+          findsOneWidget,
+        );
+        expect(
+          find.text('القرار / السابقة', skipOffstage: false),
+          findsOneWidget,
+        );
+        expect(
+          find.text('رقم ١٢٣٤ لسنة ٢٠٢٦', skipOffstage: false),
+          findsOneWidget,
+        );
         expect(tester.takeException(), isNull);
         final boundary =
             key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
@@ -187,7 +199,9 @@ void main() {
         50,
         scrollable: outerScroll,
       );
-      await tester.tap(find.text('استرجاع البيانات السابقة', skipOffstage: false));
+      await tester.tap(
+        find.text('استرجاع البيانات السابقة', skipOffstage: false),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('استخدام هذه البيانات', skipOffstage: false));
       await tester.pumpAndSettle();
@@ -301,14 +315,8 @@ void main() {
       await tester.tap(find.text('حفظ'));
       await tester.pumpAndSettle();
       expect(find.text('هذا الحقل مطلوب'), findsNWidgets(2));
-      await tester.enterText(
-        find.byType(TextFormField).at(0),
-        'مهمة ١٢٣',
-      );
-      await tester.enterText(
-        find.byType(TextFormField).at(1),
-        'تفاصيل العمل',
-      );
+      await tester.enterText(find.byType(TextFormField).at(0), 'مهمة ١٢٣');
+      await tester.enterText(find.byType(TextFormField).at(1), 'تفاصيل العمل');
       await tester.tap(find.text('حفظ'));
       await waitFor(
         tester,
@@ -324,10 +332,7 @@ void main() {
       expect(original['title'], 'مهمة 123');
       await tester.tap(find.text('مهمة ١٢٣', skipOffstage: false));
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.byType(TextFormField).at(0),
-        'مهمة ٤٥٦',
-      );
+      await tester.enterText(find.byType(TextFormField).at(0), 'مهمة ٤٥٦');
       await tester.tap(find.text('حفظ'));
       await waitFor(
         tester,
@@ -369,6 +374,34 @@ void main() {
     },
   );
 
+  testWidgets('Welcome screen animates and opens an unlocked app', (
+    tester,
+  ) async {
+    FlutterSecureStorage.setMockInitialValues({});
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: AppLock(child: Scaffold(body: Text('welcome-home'))),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('الأجندة القضائية'), findsOneWidget);
+    expect(find.text('برمجة أ/ محمد عاطف'), findsOneWidget);
+    expect(find.byTooltip('GitHub'), findsOneWidget);
+    expect(find.byTooltip('LinkedIn'), findsOneWidget);
+    final website = tester.widget<IconButton>(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is IconButton &&
+            widget.tooltip == 'الموقع الإلكتروني — لم يُضف الرابط بعد',
+      ),
+    );
+    expect(website.onPressed, isNull);
+    expect(find.text('welcome-home'), findsNothing);
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+    expect(find.text('welcome-home'), findsOneWidget);
+  });
+
   testWidgets(
     'App lock hides the navigator until unlocked and locks after backgrounding',
     (tester) async {
@@ -404,9 +437,7 @@ void main() {
       expect(find.text('private-content'), findsNothing);
       expect(find.text('فتح الأجندة'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
-      await tester.runAsync(
-        () => PasswordCipher.removeLock('1234'),
-      );
+      await tester.runAsync(() => PasswordCipher.removeLock('1234'));
     },
   );
 
