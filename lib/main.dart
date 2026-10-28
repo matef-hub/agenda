@@ -6,6 +6,7 @@ import 'features/settings/presentation/screens/settings_screen.dart';
 import 'package:agenda/core/widgets/arabic_text.dart';
 
 import 'dart:io' show Platform;
+import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -83,6 +84,8 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
   int _dataGeneration = 0;
   bool _backupNoticeDismissed = false;
   late Future<DateTime?> _lastBackup;
+  Timer? _backupNoticeTimer;
+  int _backupRequest = 0;
 
   final List<String> _titles = [
     'الجلسات اليومية',
@@ -101,14 +104,22 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
   @override
   void initState() {
     super.initState();
-    _lastBackup = BackupReminder.lastSaved();
+    _lastBackup = _loadBackupReminder();
     _pageController = PageController(initialPage: _currentIndex);
   }
 
   @override
   void dispose() {
+    _backupNoticeTimer?.cancel();
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<DateTime?> _loadBackupReminder() async {
+    _backupRequest++;
+    _backupNoticeTimer?.cancel();
+    _backupNoticeTimer = null;
+    return BackupReminder.lastSaved();
   }
 
   void _navigateToPage(int index) {
@@ -139,6 +150,14 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
                       !BackupReminder.due(snapshot.data, DateTime.now())) {
                     return const SizedBox.shrink();
                   }
+                  if (TickerMode.valuesOf(context).enabled && _backupNoticeTimer == null) {
+                    final request = _backupRequest;
+                    _backupNoticeTimer = Timer(const Duration(seconds: 5), () {
+                      if (mounted && request == _backupRequest) {
+                        setState(() => _backupNoticeDismissed = true);
+                      }
+                    });
+                  }
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Material(
@@ -164,8 +183,10 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
                         trailing: IconButton(
                           tooltip: 'إخفاء التذكير',
                           icon: const Icon(Icons.close, size: 18),
-                          onPressed: () =>
-                              setState(() => _backupNoticeDismissed = true),
+                          onPressed: () {
+                            _backupNoticeTimer?.cancel();
+                            setState(() => _backupNoticeDismissed = true);
+                          },
                         ),
                       ),
                     ),
@@ -223,7 +244,7 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
                   );
                   if (mounted) {
                     setState(() {
-                      _lastBackup = BackupReminder.lastSaved();
+                      _lastBackup = _loadBackupReminder();
                       _backupNoticeDismissed = false;
                     });
                   }

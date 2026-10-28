@@ -6,74 +6,20 @@ import 'package:http/http.dart' as http;
 
 import 'arabic_format.dart';
 
-/// Uses a user-provided Calendarific key or a configured backend proxy.
+/// Retrieves Calendarific holidays using the key supplied when building.
 class HolidaySync extends ChangeNotifier {
-  static const configuredEndpoint = String.fromEnvironment(
-    'AGENDA_HOLIDAY_ENDPOINT',
+  static const configuredKey = String.fromEnvironment(
+    'CALENDARIFIC_API_KEY',
   );
   static final instance = HolidaySync();
   static const _storage = FlutterSecureStorage();
-  static const _keyName = 'agenda_calendarific_key_v1';
   final http.Client _client;
-  final String endpoint;
+  final String apiKey;
   final Map<int, Future<HolidaySnapshot?>> _pending = {};
   final Map<int, (DateTime, HolidaySnapshot?)> _recent = {};
-  int _generation = 0;
 
-  HolidaySync({http.Client? client, this.endpoint = configuredEndpoint})
+  HolidaySync({http.Client? client, this.apiKey = configuredKey})
     : _client = client ?? http.Client();
-
-  Future<bool> hasApiKey() async =>
-      (await _storage.read(key: _keyName))?.isNotEmpty == true;
-
-  /// Validate before replacing a working key. No credential or request URL is logged.
-  Future<void> saveApiKey(String value) async {
-    final key = value.trim();
-    if (key.isEmpty || key.length > 256 || key.contains(RegExp(r'\s'))) {
-      throw const FormatException('مفتاح غير صالح');
-    }
-    final year = DateTime.now().year;
-    final response = await _client
-        .get(_calendarificUri(year, key))
-        .timeout(const Duration(seconds: 8));
-    final snapshot =
-        response.statusCode == 200 && response.bodyBytes.length <= 1024 * 1024
-        ? HolidaySnapshot.fromResponse(response.body, year, DateTime.now())
-        : null;
-    if (response.statusCode != 200 ||
-        response.bodyBytes.length > 1024 * 1024 ||
-        snapshot == null) {
-      throw const FormatException('تعذر التحقق من المفتاح أو بيانات الخدمة');
-    }
-    await _storage.write(key: _keyName, value: key);
-    try {
-      await _storage.write(
-        key: 'agenda_holidays_${year}_v1',
-        value: snapshot.toCache(),
-      );
-    } catch (_) {
-      // Saving the key succeeded even if the optional local cache failed.
-    }
-    _reset();
-  }
-
-  Future<void> removeApiKey() async {
-    await _storage.delete(key: _keyName);
-    _reset();
-  }
-
-  Uri _calendarificUri(int year, String key) => Uri.https(
-    'calendarific.com',
-    '/api/v2/holidays',
-    {'api_key': key, 'country': 'EG', 'year': '$year', 'type': 'national'},
-  );
-
-  void _reset() {
-    _generation++;
-    _recent.clear();
-    _pending.clear();
-    notifyListeners();
-  }
 
   Future<HolidaySnapshot?> forYear(int year) {
     final recent = _recent[year];
@@ -81,19 +27,18 @@ class HolidaySync extends ChangeNotifier {
         DateTime.now().difference(recent.$1) < const Duration(hours: 1)) {
       return Future.value(recent.$2);
     }
-    final generation = _generation;
     return _pending.putIfAbsent(year, () async {
       try {
-        final value = await _load(year, generation);
-        if (generation == _generation) _recent[year] = (DateTime.now(), value);
+        final value = await _load(year);
+        _recent[year] = (DateTime.now(), value);
         return value;
       } finally {
-        if (generation == _generation) _pending.remove(year);
+        _pending.remove(year);
       }
     });
   }
 
-  Future<HolidaySnapshot?> _load(int year, int generation) async {
+  Future<HolidaySnapshot?> _load(int year) async {
     if (year < 1900 || year > 2200) return null;
     final cacheKey = 'agenda_holidays_${year}_v1';
     HolidaySnapshot? cached;
@@ -103,21 +48,7 @@ class HolidaySync extends ChangeNotifier {
     } catch (_) {
       // A storage failure must not prevent opening the agenda.
     }
-    String? apiKey;
-    try {
-      apiKey = await _storage.read(key: _keyName);
-    } catch (_) {
-      return cached;
-    }
-    final url = Uri.tryParse(endpoint);
-    final proxyValid =
-        url != null &&
-        url.scheme == 'https' &&
-        url.host.isNotEmpty &&
-        url.userInfo.isEmpty &&
-        url.host.toLowerCase() != 'calendarific.com' &&
-        !url.queryParameters.keys.any((key) => key.toLowerCase() == 'api_key');
-    if ((apiKey == null || apiKey.isEmpty) && !proxyValid) {
+    if (apiKey.trim().isEmpty) {
       return cached;
     }
     if (cached != null &&
@@ -126,16 +57,12 @@ class HolidaySync extends ChangeNotifier {
       return cached;
     }
     try {
-      final uri = apiKey != null && apiKey.isNotEmpty
-          ? _calendarificUri(year, apiKey)
-          : url!.replace(
-              queryParameters: {
-                ...url.queryParameters,
-                'country': 'EG',
-                'year': '$year',
-                'type': 'national',
-              },
-            );
+      final uri = Uri.https('calendarific.com', '/api/v2/holidays', {
+        'api_key': apiKey.trim(),
+        'country': 'EG',
+        'year': '$year',
+        'type': 'national',
+      });
       final response = await _client
           .get(uri)
           .timeout(const Duration(seconds: 8));
@@ -149,7 +76,6 @@ class HolidaySync extends ChangeNotifier {
         DateTime.now(),
       );
       if (snapshot == null) return cached;
-      if (generation != _generation) return cached;
       try {
         await _storage.write(key: cacheKey, value: snapshot.toCache());
       } catch (_) {

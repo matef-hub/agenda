@@ -55,6 +55,7 @@ _edit_task.py
 
 # Local workspace inventories and backups
 /tree.txt
+/calendarific.local.json
 *.agenda
 *.db
 *.db-journal

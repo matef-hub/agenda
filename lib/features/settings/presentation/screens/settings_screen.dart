@@ -13,7 +13,6 @@ import '../../../../core/utils/arabic_format.dart';
 import '../../../../core/widgets/arabic_text.dart';
 import '../../../../core/widgets/developer_links.dart';
 import '../../../personal_data/presentation/screens/personal_data_screen.dart';
-import 'holiday_settings_screen.dart';
 
 Future<String?> askPassword(
   BuildContext context, {
@@ -137,13 +136,6 @@ class SettingsScreen extends StatelessWidget {
     appBar: AppBar(title: const ArabicText('الإعدادات')),
     body: ListView(
       children: [
-        ListTile(
-          leading: const Icon(Icons.event_available_outlined),
-          title: const ArabicText('تحديث الإجازات'),
-          subtitle: const ArabicText('إعداد مفتاح Calendarific'),
-          trailing: const Icon(Icons.chevron_left),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HolidaySettingsScreen())),
-        ),
         const ListTile(
           leading: Icon(Icons.code),
           title: ArabicText('برمجة أ/ محمد عاطف'),

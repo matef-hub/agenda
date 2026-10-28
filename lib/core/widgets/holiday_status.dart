@@ -99,7 +99,7 @@ class _HolidayStatusState extends State<HolidayStatus> with WidgetsBindingObserv
               ),
             if (useRemote && snapshot.data != null)
               ArabicText(
-                'بيانات خارجية بتاريخ ${ArabicFormat.date(snapshot.data!.fetchedAt)}',
+                  'المصدر: Calendarific — ${ArabicFormat.date(snapshot.data!.fetchedAt)}',
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 9, color: AppColors.textLight),
               ),

@@ -376,6 +376,46 @@ void main() {
     },
   );
 
+  testWidgets('backup reminder disappears five seconds after it appears', (tester) async {
+    FlutterSecureStorage.setMockInitialValues({});
+    final provider = SessionProvider(repository: PreviewRepository([]), autoLoad: false);
+    await provider.loadSessions();
+    await tester.pumpWidget(ChangeNotifierProvider.value(value: provider, child: const MyApp(enableLock: false)));
+    await tester.pump();
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 30)));
+    await tester.pump();
+    expect(find.text('تذكير بالنسخ الاحتياطي'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 4));
+    expect(find.text('تذكير بالنسخ الاحتياطي'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    expect(find.text('تذكير بالنسخ الاحتياطي'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    provider.dispose();
+  });
+
+  testWidgets('backup reminder does not expire while the screen is inactive', (tester) async {
+    FlutterSecureStorage.setMockInitialValues({});
+    final provider = SessionProvider(repository: PreviewRepository([]), autoLoad: false);
+    await provider.loadSessions();
+    Widget app(bool enabled) => TickerMode(
+      enabled: enabled,
+      child: ChangeNotifierProvider.value(value: provider, child: const MyApp(enableLock: false)),
+    );
+    await tester.pumpWidget(app(false));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 30)));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pumpWidget(app(true));
+    await tester.pump();
+    expect(find.text('تذكير بالنسخ الاحتياطي'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pump();
+    expect(find.text('تذكير بالنسخ الاحتياطي'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    provider.dispose();
+  });
+
   testWidgets('daily schedule identifies official and weekly holidays', (tester) async {
     final provider = SessionProvider(repository: PreviewRepository([]), autoLoad: false);
     provider.setSelectedDate(DateTime(2026, 10, 8));
