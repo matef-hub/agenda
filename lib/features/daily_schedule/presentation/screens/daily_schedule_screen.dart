@@ -260,7 +260,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_forward_ios, size: 20),
+                icon: const Icon(Icons.arrow_back_ios, size: 20),
                 color: AppColors.brand700,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
@@ -277,7 +277,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.arrow_back_ios, size: 20),
+                icon: const Icon(Icons.arrow_forward_ios, size: 20),
                 color: AppColors.brand700,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
