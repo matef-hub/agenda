@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/arabic_format.dart';
+import '../../../../core/widgets/holiday_status.dart';
 import '../../../../core/widgets/arabic_text.dart';
 import '../../data/models/session_model.dart';
 import '../../data/repositories/session_repository.dart';
@@ -553,6 +554,10 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      HolidayStatus(date: _selectedDate),
+                      const ArabicText('تحقق من مواعيد المحكمة المختصة.',
+                          style: TextStyle(fontSize: 10, color: AppColors.textLight)),
                     ],
                   ),
                 ),
@@ -822,23 +827,6 @@ class _AddEditSessionScreenState extends State<AddEditSessionScreen> {
                               fontWeight: FontWeight.w600,
                               color: AppColors.textDark,
                             ),
-                          ),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.lock,
-                                size: 12,
-                                color: AppColors.textLight,
-                              ),
-                              const SizedBox(width: 2),
-                              const ArabicText(
-                                'سري ومحمي',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.textLight,
-                                ),
-                              ),
-                            ],
                           ),
                         ],
                       ),

@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/utils/arabic_format.dart';
+import '../../../../core/widgets/holiday_status.dart';
 import '../../../../core/database/database_helper.dart';
 import '../../../../core/reports/office_report.dart';
 import '../../../../core/reports/report_action.dart';
@@ -55,7 +56,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
         builder: (dialogContext) => SimpleDialog(
           title: ArabicText('اختر التقويم لإضافة ${ArabicFormat.digits(sessions.length.toString())} جلسة'),
           children: [
-            const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: ArabicText('ستُضاف الجلسات المعروضة كمواعيد طوال اليوم مع تذكير قبل يوم. تكرار الإضافة ينشئ مواعيد مكررة.')),
+            const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: ArabicText('ستُضاف الجلسات المعروضة كمواعيد طوال اليوم مع تذكير قبل يوم. الجلسات التي أضيفت سابقًا إلى نفس التقويم ستُتخطى؛ تعديلات الجلسة لا تحدّث التقويم تلقائيًا.')),
             for (final calendar in calendars)
               SimpleDialogOption(
                 onPressed: () => Navigator.pop(dialogContext, calendar),
@@ -70,6 +71,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
         final date = s.sessionDate;
         final start = DateTime.utc(date.year, date.month, date.day);
         return {
+          'sourceKey': '${s.id}:${s.createdAt.toIso8601String()}',
           'title': ArabicFormat.digits('جلسة ${s.caseNumber} لسنة ${s.caseYear}'),
           'description': ArabicFormat.digits('الموكل: ${s.clientName}\nالدائرة: ${s.circuit}\n${s.notes}'),
           'location': s.courtName,
@@ -77,8 +79,15 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
           'end': start.add(const Duration(days: 1)).millisecondsSinceEpoch,
         };
       }).toList();
-      await channel.invokeMethod<int>('addEvents', {'calendarId': selected['id'], 'events': events});
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: ArabicText('تمت إضافة الجلسات إلى التقويم.')));
+      final result = await channel.invokeMapMethod<String, dynamic>('addEvents', {'calendarId': selected['id'], 'events': events});
+      if (mounted) {
+        final added = result?['added'] as int? ?? 0;
+        final skipped = result?['skipped'] as int? ?? 0;
+        final warning = result?['remembered'] == false
+            ? ' تعذر حفظ سجل الإضافة؛ تحقق من التقويم قبل المحاولة مجددًا.'
+            : '';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: ArabicText('تمت إضافة $added وتخطي $skipped جلسة موجودة.$warning')));
+      }
     } on PlatformException catch (error) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: ArabicText(error.code == 'permission_denied' ? 'لم يُمنح إذن الوصول إلى التقويم.' : 'تعذرت إضافة الجلسات إلى التقويم.')));
     } catch (error) {
@@ -392,7 +401,7 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                         children: [
                           Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.secondaryGold, shape: BoxShape.circle)),
                           const SizedBox(width: 4),
-                          const ArabicText('يوم العمل الرسمي', style: TextStyle(fontSize: 11, color: AppColors.brand800, fontWeight: FontWeight.w600)),
+                          Flexible(child: HolidayStatus(date: provider.selectedDate, compact: true)),
                         ],
                       ),
                     ),

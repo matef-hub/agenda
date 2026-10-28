@@ -7,11 +7,13 @@ import 'package:flutter/material.dart';
 import '../../../../core/database/database_helper.dart';
 import '../../../../core/reports/report_action.dart';
 import '../../../../core/security/backup_service.dart';
+import '../../../../core/security/backup_reminder.dart';
 import '../../../../core/security/secret_vault.dart';
 import '../../../../core/utils/arabic_format.dart';
 import '../../../../core/widgets/arabic_text.dart';
 import '../../../../core/widgets/developer_links.dart';
 import '../../../personal_data/presentation/screens/personal_data_screen.dart';
+import 'holiday_settings_screen.dart';
 
 Future<String?> askPassword(
   BuildContext context, {
@@ -135,6 +137,13 @@ class SettingsScreen extends StatelessWidget {
     appBar: AppBar(title: const ArabicText('الإعدادات')),
     body: ListView(
       children: [
+        ListTile(
+          leading: const Icon(Icons.event_available_outlined),
+          title: const ArabicText('تحديث الإجازات'),
+          subtitle: const ArabicText('إعداد مفتاح Calendarific'),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HolidaySettingsScreen())),
+        ),
         const ListTile(
           leading: Icon(Icons.code),
           title: ArabicText('برمجة أ/ محمد عاطف'),
@@ -206,6 +215,29 @@ class _SettingsToolsScreenState extends State<_SettingsToolsScreen> {
   late final _backup = BackupService(widget.database ?? DatabaseHelper());
   bool _busy = false, _restored = false;
   String? _message;
+  DateTime? _lastBackup;
+  bool _backupDateAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.protection) _loadBackupDate();
+  }
+
+  Future<void> _loadBackupDate() async {
+    try {
+      final value = await BackupReminder.lastSaved();
+      if (mounted) {
+        setState(() {
+          _lastBackup = value;
+          _backupDateAvailable = true;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _backupDateAvailable = false);
+    }
+  }
+
   Future<void> _run(Future<void> Function() action) async {
     if (_busy) return;
     setState(() {
@@ -243,8 +275,23 @@ class _SettingsToolsScreenState extends State<_SettingsToolsScreen> {
             'أجندة-${ArabicFormat.digits(ArabicFormat.dateKey(DateTime.now()))}.agenda',
         bytes: bytes,
       );
-      if (mounted && path != null) {
-        setState(() => _message = 'تم حفظ النسخة الاحتياطية المشفرة بنجاح.');
+      if (path != null) {
+        final now = DateTime.now();
+        var recorded = true;
+        try {
+          await BackupReminder.recordSaved(now);
+        } catch (_) {
+          recorded = false;
+        }
+        if (mounted) {
+          setState(() {
+            _lastBackup = recorded ? now : _lastBackup;
+            _backupDateAvailable = recorded;
+            _message = recorded
+                ? 'تم حفظ النسخة الاحتياطية المشفرة بنجاح.'
+                : 'تم حفظ النسخة، لكن تعذر تسجيل تاريخها على الجهاز.';
+          });
+        }
       }
     });
   }
@@ -283,19 +330,29 @@ class _SettingsToolsScreenState extends State<_SettingsToolsScreen> {
         builder: (dialogContext) => SimpleDialog(
           title: const ArabicText('اختر ما تريد استعادته'),
           children: [
-            SimpleDialogOption(onPressed: () => Navigator.pop(dialogContext, 'all'), child: const ArabicText('كل الأقسام')),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext, 'all'),
+              child: const ArabicText('كل الأقسام'),
+            ),
             for (final entry in labels.entries)
-              SimpleDialogOption(onPressed: () => Navigator.pop(dialogContext, entry.key), child: ArabicText(entry.value)),
-            SimpleDialogOption(onPressed: () => Navigator.pop(dialogContext), child: const ArabicText('إلغاء')),
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(dialogContext, entry.key),
+                child: ArabicText(entry.value),
+              ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const ArabicText('إلغاء'),
+            ),
           ],
         ),
       );
       if (choice == null || !mounted) return;
-      final selected = choice == 'all' ? DatabaseHelper.tables.toSet() : {choice};
-      final count = selected.map((table) => tables[table]!).fold<int>(
-        0,
-        (sum, rows) => sum + rows.length,
-      );
+      final selected = choice == 'all'
+          ? DatabaseHelper.tables.toSet()
+          : {choice};
+      final count = selected
+          .map((table) => tables[table]!)
+          .fold<int>(0, (sum, rows) => sum + rows.length);
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
@@ -392,6 +449,12 @@ class _SettingsToolsScreenState extends State<_SettingsToolsScreen> {
             const ArabicText(
               'احفظ نسخة مشفرة خارج الجهاز، واستخدم كلمة مرور تحتفظ بها لاستعادتها.',
             ),
+            if (_backupDateAvailable)
+              ArabicText(
+                _lastBackup == null
+                    ? 'لم يُسجّل حفظ نسخة احتياطية على هذا الجهاز بعد.'
+                    : 'آخر نسخة محفوظة على هذا الجهاز: ${ArabicFormat.date(_lastBackup!)}',
+              ),
             const SizedBox(height: 12),
             FilledButton.icon(
               onPressed: _busy ? null : _export,

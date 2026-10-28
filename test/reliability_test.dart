@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:agenda/core/database/database_helper.dart';
 import 'package:agenda/core/security/backup_service.dart';
+import 'package:agenda/core/security/backup_reminder.dart';
 import 'package:agenda/core/security/secret_vault.dart';
 import 'package:agenda/core/utils/arabic_format.dart';
 import 'package:agenda/core/utils/date_utils.dart';
@@ -45,6 +46,23 @@ void main() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     FlutterSecureStorage.setMockInitialValues({});
+  });
+  test('backup reminder records successful backup dates and becomes due after seven days', () async {
+    FlutterSecureStorage.setMockInitialValues({});
+    final saved = DateTime(2026, 10, 1, 12);
+    expect(await BackupReminder.lastSaved(), isNull);
+    expect(BackupReminder.due(null, saved), isTrue);
+    await BackupReminder.recordSaved(saved);
+    final restored = await BackupReminder.lastSaved();
+    expect(restored, saved);
+    expect(
+      BackupReminder.due(restored, saved.add(const Duration(days: 6))),
+      isFalse,
+    );
+    expect(
+      BackupReminder.due(restored, saved.add(const Duration(days: 7))),
+      isTrue,
+    );
   });
   test(
     'Arabic and Persian digits normalize and all visible numbers are Arabic',

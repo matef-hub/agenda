@@ -2,6 +2,7 @@ package com.ateflaw.agenda
 
 import android.Manifest
 import android.content.ContentProviderOperation
+import android.content.ContentUris
 import android.content.pm.PackageManager
 import android.provider.CalendarContract
 import io.flutter.embedding.android.FlutterActivity
@@ -35,8 +36,19 @@ class MainActivity : FlutterActivity() {
                         val calendarId = call.argument<Number>("calendarId")!!.toLong()
                         val events = call.argument<List<Map<String, Any>>>("events")!!
                         val ops = ArrayList<ContentProviderOperation>()
+                        val preferences = getSharedPreferences("agenda_calendar_events", MODE_PRIVATE)
+                        val inserted = ArrayList<Pair<String, Int>>()
+                        val seen = HashSet<String>()
+                        var skipped = 0
                         for (event in events) {
+                            val source = event["sourceKey"] as String
+                            val key = "$calendarId:$source"
+                            if (!seen.add(key) || eventExists(preferences.getLong(key, -1L), calendarId)) {
+                                skipped++
+                                continue
+                            }
                             val eventIndex = ops.size
+                            inserted.add(key to eventIndex)
                             ops.add(ContentProviderOperation.newInsert(CalendarContract.Events.CONTENT_URI)
                                 .withValue(CalendarContract.Events.CALENDAR_ID, calendarId)
                                 .withValue(CalendarContract.Events.TITLE, event["title"])
@@ -54,8 +66,14 @@ class MainActivity : FlutterActivity() {
                                 .withValue(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
                                 .build())
                         }
-                        contentResolver.applyBatch(CalendarContract.AUTHORITY, ops)
-                        result.success(events.size)
+                        val results = if (ops.isEmpty()) emptyArray() else contentResolver.applyBatch(CalendarContract.AUTHORITY, ops)
+                        val editor = preferences.edit()
+                        for ((key, index) in inserted) {
+                            val uri = results[index].uri ?: throw IllegalStateException("Missing event URI")
+                            editor.putLong(key, ContentUris.parseId(uri))
+                        }
+                        val remembered = editor.commit()
+                        result.success(mapOf("added" to inserted.size, "skipped" to skipped, "remembered" to remembered))
                     } catch (e: Exception) {
                         result.error("calendar_error", e.message, null)
                     }
@@ -63,6 +81,17 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    private fun eventExists(eventId: Long, calendarId: Long): Boolean {
+        if (eventId < 0) return false
+        val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+        return contentResolver.query(
+            uri, arrayOf(CalendarContract.Events.CALENDAR_ID, CalendarContract.Events.DELETED),
+            null, null, null
+        )?.use { cursor ->
+            cursor.moveToFirst() && cursor.getLong(0) == calendarId && cursor.getInt(1) == 0
+        } ?: false
     }
 
     private fun listCalendars(result: MethodChannel.Result) {

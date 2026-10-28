@@ -14,7 +14,10 @@ class DeveloperLinks extends StatefulWidget {
 
 class _DeveloperLinksState extends State<DeveloperLinks> {
   // Supply the real links at build time; absent links remain visibly disabled.
-  static const _website = String.fromEnvironment('https://ahkam.app/');
+  static const _website = String.fromEnvironment(
+    'AGENDA_WEBSITE',
+    defaultValue: 'https://ahkam.app/',
+  );
   static const _linkedin = String.fromEnvironment(
     'AGENDA_LINKEDIN',
     defaultValue: 'https://www.linkedin.com/in/moateflawyer/',

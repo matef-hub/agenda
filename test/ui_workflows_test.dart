@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -25,6 +26,7 @@ import 'package:agenda/features/daily_schedule/presentation/widgets/previous_hea
 import 'package:agenda/features/daily_schedule/data/repositories/session_repository.dart';
 import 'package:agenda/features/daily_schedule/data/repositories/schedule_export.dart';
 import 'package:agenda/features/daily_schedule/presentation/providers/session_provider.dart';
+import 'package:agenda/features/daily_schedule/presentation/screens/daily_schedule_screen.dart';
 
 class PreviewRepository extends SessionRepository {
   final List<Session> data;
@@ -374,6 +376,54 @@ void main() {
     },
   );
 
+  testWidgets('daily schedule identifies official and weekly holidays', (tester) async {
+    final provider = SessionProvider(repository: PreviewRepository([]), autoLoad: false);
+    provider.setSelectedDate(DateTime(2026, 10, 8));
+    await tester.pumpWidget(ChangeNotifierProvider.value(value: provider, child: host(const DailyScheduleScreen())));
+    await tester.pumpAndSettle();
+    expect(find.text('إجازة رسمية معلنة'), findsOneWidget);
+    expect(find.text('عيد القوات المسلحة'), findsOneWidget);
+    provider.setSelectedDate(DateTime(2026, 10, 9));
+    await tester.pumpAndSettle();
+    expect(find.text('عطلة أسبوعية معتادة'), findsOneWidget);
+    expect(find.text('يوم العمل الرسمي'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    provider.dispose();
+  });
+
+  testWidgets('calendar export sends stable identity and reports skipped events', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    const channel = MethodChannel('com.ateflaw.agenda/calendar');
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      if (call.method == 'calendars') return [{'id': 9, 'name': 'تقويم تجريبي', 'account': 'test'}];
+      if (call.method == 'addEvents') return {'added': 0, 'skipped': 1, 'remembered': true};
+      return null;
+    });
+    addTearDown(() => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, null));
+    final session = previewSession();
+    final provider = SessionProvider(repository: PreviewRepository([session]), autoLoad: false);
+    await provider.loadSessions();
+    await tester.pumpWidget(ChangeNotifierProvider.value(value: provider, child: host(const DailyScheduleScreen())));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('إضافة إلى تقويم الجهاز'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('تقويم تجريبي — test'));
+    await tester.pumpAndSettle();
+    final arguments = calls.last.arguments as Map;
+    final event = (arguments['events'] as List).single as Map;
+    expect(event['sourceKey'], '${session.id}:${session.createdAt.toIso8601String()}');
+    expect(find.textContaining('تخطي ١ جلسة'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    provider.dispose();
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets('Welcome screen animates and opens an unlocked app', (
     tester,
   ) async {
@@ -392,10 +442,10 @@ void main() {
       find.byWidgetPredicate(
         (widget) =>
             widget is IconButton &&
-            widget.tooltip == 'الموقع الإلكتروني — لم يُضف الرابط بعد',
+            widget.tooltip == 'الموقع الإلكتروني',
       ),
     );
-    expect(website.onPressed, isNull);
+    expect(website.onPressed, isNotNull);
     expect(find.text('welcome-home'), findsNothing);
     await tester.pump(const Duration(seconds: 2));
     await tester.pumpAndSettle();

@@ -1,5 +1,6 @@
 import 'core/utils/agenda_localizations.dart';
 import 'core/widgets/app_lock.dart';
+import 'core/security/backup_reminder.dart';
 import 'features/settings/presentation/screens/settings_screen.dart';
 
 import 'package:agenda/core/widgets/arabic_text.dart';
@@ -80,6 +81,8 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
   late final PageController _pageController;
   int _currentIndex = 0;
   int _dataGeneration = 0;
+  bool _backupNoticeDismissed = false;
+  late Future<DateTime?> _lastBackup;
 
   final List<String> _titles = [
     'الجلسات اليومية',
@@ -98,6 +101,7 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
   @override
   void initState() {
     super.initState();
+    _lastBackup = BackupReminder.lastSaved();
     _pageController = PageController(initialPage: _currentIndex);
   }
 
@@ -126,6 +130,48 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
           children: [
             // شريط العنوان الأنيق
             _buildMinimalistHeader(),
+            if (!_backupNoticeDismissed)
+              FutureBuilder<DateTime?>(
+                future: _lastBackup,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done ||
+                      snapshot.hasError ||
+                      !BackupReminder.due(snapshot.data, DateTime.now())) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Material(
+                      color: const Color(0xFFFFF4E1),
+                      borderRadius: BorderRadius.circular(10),
+                      child: ListTile(
+                        dense: true,
+                        leading: const Icon(
+                          Icons.backup_outlined,
+                          color: AppColors.secondaryGold,
+                        ),
+                        title: const ArabicText(
+                          'تذكير بالنسخ الاحتياطي',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                        subtitle: const ArabicText(
+                          'احفظ نسخة مشفرة من الإعدادات.',
+                          style: TextStyle(fontSize: 11),
+                        ),
+                        trailing: IconButton(
+                          tooltip: 'إخفاء التذكير',
+                          icon: const Icon(Icons.close, size: 18),
+                          onPressed: () =>
+                              setState(() => _backupNoticeDismissed = true),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             // التنقل بالإيماءات (Swipe)
             Expanded(
               child: PageView(
@@ -175,6 +221,12 @@ class _JudicialAgendaShellState extends State<JudicialAgendaShell> {
                       ),
                     ),
                   );
+                  if (mounted) {
+                    setState(() {
+                      _lastBackup = BackupReminder.lastSaved();
+                      _backupNoticeDismissed = false;
+                    });
+                  }
                 },
               ),
               // الخط الذهبي الأيسر
