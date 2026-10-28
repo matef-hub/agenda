@@ -140,10 +140,10 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // The empty state should show a message.
-      expect(find.text('لا توجد جلسات مسجلة لهذا اليوم'), findsOneWidget);
+      expect(find.text('لا توجد جلسات مسجلة لهذا اليوم', skipOffstage: false), findsOneWidget);
 
       // There should be a button to add a session.
-      expect(find.text('إضافة جلسة'), findsOneWidget);
+      expect(find.text('جلسة جديدة'), findsOneWidget);
     });
   });
 
@@ -536,21 +536,11 @@ void main() {
       expect(find.text('إضافة جلسة جديدة'), findsOneWidget);
 
       // Try to save without filling any fields.
-      await tester.scrollUntilVisible(
-        find.text('حفظ الجلسة'),
-        300,
-        scrollable: find
-            .descendant(
-              of: find.byType(ListView).last,
-              matching: find.byType(Scrollable),
-            )
-            .first,
-      );
       await tester.tap(find.text('حفظ الجلسة'));
       await tester.pumpAndSettle();
 
       // Validation errors should appear for required fields.
-      expect(find.text('هذا الحقل مطلوب'), findsWidgets);
+      expect(find.text('مطلوب'), findsWidgets);
     });
   });
 

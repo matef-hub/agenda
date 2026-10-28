@@ -1,0 +1,303 @@
+<!DOCTYPE html><html class="h-full bg-surface" dir="rtl" lang="ar"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>الأجندة القضائية - الأجندة الإلكترونية للمحامي</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-surface-variant": "#424843",
+            "on-error": "#ffffff",
+            "on-primary-fixed": "#002112",
+            "tertiary-fixed": "#bfedd0",
+            "on-secondary": "#ffffff",
+            "secondary": "#7b581e",
+            "on-secondary-container": "#78551b",
+            "secondary-fixed-dim": "#eebe7b",
+            "outline": "#727973",
+            "error-container": "#ffdad6",
+            "surface-container": "#e6f0e8",
+            "on-tertiary": "#ffffff",
+            "secondary-container": "#fdcc87",
+            "inverse-on-surface": "#e9f3eb",
+            "on-surface": "#151d19",
+            "on-primary-container": "#87aa94",
+            "tertiary-container": "#15402b",
+            "on-secondary-fixed": "#291800",
+            "tertiary": "#002918",
+            "surface-container-high": "#e1ebe2",
+            "surface": "#f2fcf3",
+            "primary-fixed-dim": "#aacfb8",
+            "surface-container-low": "#ecf6ee",
+            "tertiary-fixed-dim": "#a3d1b4",
+            "on-tertiary-container": "#7fac91",
+            "background": "#f2fcf3",
+            "surface-dim": "#d2ddd4",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed": "#c6ebd3",
+            "on-error-container": "#93000a",
+            "error": "#ba1a1a",
+            "on-tertiary-fixed-variant": "#254f39",
+            "surface-container-highest": "#dbe5dd",
+            "on-primary-fixed-variant": "#2c4d3c",
+            "on-primary": "#ffffff",
+            "primary-container": "#1e3f2e",
+            "secondary-fixed": "#ffddb1",
+            "outline-variant": "#c1c8c1",
+            "surface-variant": "#dbe5dd",
+            "on-tertiary-fixed": "#002112",
+            "primary": "#062919",
+            "surface-tint": "#446652",
+            "on-background": "#151d19",
+            "inverse-surface": "#29322d",
+            "on-secondary-fixed-variant": "#614006",
+            "inverse-primary": "#aacfb8",
+            "surface-bright": "#f2fcf3"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin": "1rem",
+            "space-md": "0.75rem",
+            "space-xl": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1rem",
+            "gutter": "0.75rem"
+          },
+          "fontFamily": {
+            "headline-sm": ["IBM Plex Sans Arabic", "IBM Plex Sans", "sans-serif"],
+            "title-sm": ["IBM Plex Sans Arabic", "IBM Plex Sans", "sans-serif"],
+            "label-md": ["IBM Plex Sans Arabic", "IBM Plex Sans", "sans-serif"],
+            "title-md": ["IBM Plex Sans Arabic", "IBM Plex Sans", "sans-serif"],
+            "headline-lg": ["IBM Plex Sans Arabic", "IBM Plex Sans", "sans-serif"],
+            "label-sm": ["IBM Plex Sans Arabic", "IBM Plex Sans", "sans-serif"],
+            "body-sm": ["IBM Plex Sans Arabic", "IBM Plex Sans", "sans-serif"],
+            "headline-md": ["IBM Plex Sans Arabic", "IBM Plex Sans", "sans-serif"],
+            "body-lg": ["IBM Plex Sans Arabic", "IBM Plex Sans", "sans-serif"],
+            "numeric-code": ["IBM Plex Sans Arabic", "IBM Plex Sans", "sans-serif"],
+            "body-md": ["IBM Plex Sans Arabic", "IBM Plex Sans", "sans-serif"]
+          },
+          "fontSize": {
+            "headline-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+            "title-sm": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+            "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.2px", "fontWeight": "600"}],
+            "title-md": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+            "headline-lg": ["30px", {"lineHeight": "38px", "fontWeight": "700"}],
+            "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+            "body-sm": ["12px", {"lineHeight": "18px", "fontWeight": "400"}],
+            "headline-md": ["22px", {"lineHeight": "30px", "fontWeight": "600"}],
+            "body-lg": ["15px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "numeric-code": ["13px", {"lineHeight": "16px", "fontWeight": "600"}],
+            "body-md": ["13px", {"lineHeight": "20px", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="h-full bg-surface text-on-surface antialiased flex justify-center selection:bg-primary-fixed selection:text-primary">
+<!-- Mobile Canvas Device Shell (390px canonical ratio) -->
+<div class="relative w-full max-w-[420px] min-h-screen bg-surface flex flex-col justify-between pb-6 shadow-sm overflow-x-hidden">
+<!-- Decorative Ambient Glows -->
+<div class="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-primary-fixed/30 blur-3xl pointer-events-none"></div>
+<div class="absolute top-96 -left-20 w-64 h-64 rounded-full bg-secondary-fixed/20 blur-3xl pointer-events-none"></div>
+<!-- MAIN SCROLLABLE CONTENT -->
+<div class="w-full flex flex-col z-10">
+<!-- 1. TopAppBar (Shared Component Implementation) -->
+<!-- Semantic Shell: Onboarding Screen with Trailing "دخول" Action and Brand Anchor -->
+<header class="bg-surface text-primary border-b border-outline-variant/60 shadow-sm flex justify-between items-center w-full px-margin h-14 rtl sticky top-0 z-40 backdrop-blur-md bg-surface/90">
+<!-- Brand Leading Identity -->
+<div class="flex items-center gap-space-xs">
+<div class="w-9 h-9 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-lg" data-icon="gavel">gavel</span>
+</div>
+<div class="flex flex-col text-right"><span class="text-headline-sm font-headline-sm font-bold text-primary tracking-tight">الأجندة القضائية</span>
+<span class="text-[10px] text-outline font-body-sm -mt-1">الأجندة الإلكترونية للمحامي</span></div>
+</div>
+<!-- Trailing Action: دخول -->
+<a class="text-label-md font-label-md px-space-md py-1.5 rounded-xl border border-outline-variant/80 text-primary hover:bg-surface-container-high transition-colors duration-150 active:scale-95 transition-transform duration-100 flex items-center gap-1 bg-surface-container-lowest shadow-sm" href="#login">
+<span class="">دخول</span>
+<span class="material-symbols-outlined text-sm" data-icon="login">login</span>
+</a>
+</header>
+<!-- 2. Hero Section -->
+<section class="px-margin pt-space-lg pb-space-sm flex flex-col">
+<!-- Live Badge / Editorial Tag -->
+<div class="self-start inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container border border-outline-variant/40 mb-3 shadow-sm"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="text-label-sm font-label-sm text-primary font-semibold">بديل الأجندة الورقية لمكتب المحامي</span></div>
+<!-- Main Headline -->
+<h1 class="text-headline-lg font-headline-lg text-primary tracking-tight leading-snug">وداعاً للأجندة الورقية..<br>
+<span class="text-secondary">أجندتك القضائية في جيبك</span></h1>
+<!-- Subtitle -->
+<p class="text-body-md font-body-md text-on-surface-variant mt-2 leading-relaxed">تحويل الأجندة الورقية التقليدية إلى أجندة إلكترونية ذكية وفائقة السهولة. متابعة سريعة ومباشرة للجلسات اليومية والمهام بدون تعقيد أو إدخال بيانات مطولة.</p>
+<!-- Prestigious Hero Illustration / Digital Court Docket Visual -->
+<div class="mt-4 relative rounded-xl border border-outline-variant bg-surface-container-lowest p-3.5 shadow-sm overflow-hidden">
+<!-- Subtle diagonal watermark badge -->
+<div class="absolute -left-6 -bottom-6 opacity-5 pointer-events-none text-primary">
+<span class="material-symbols-outlined text-9xl" data-icon="balance">balance</span>
+</div>
+<!-- Hero Image Component (High Editorial Visual) -->
+<div class="relative w-full h-36 rounded-xl overflow-hidden mb-3 border border-outline-variant/50">
+<img class="w-full h-full object-cover" data-alt="A prestigious, high-end modern law office workspace at dusk, showcasing an executive dark wood and polished brass desk. On the desk sits an ultra-thin digital tablet displaying a sleek calendar of court sessions alongside an authentic judicial gavel and neatly organized legal dossiers. The environment is illuminated by warm ambient desk lamps and subtle moonlight, creating a refined atmosphere defined by deep emerald greens, warm gold accents, and clean minimalist architecture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDX3Ektpy2zh_OmWtASqk7w_bb-Ntsk8BpQigtBqupx7MED8aw-ARIPVXmjcAXSLH66UPfG2j2KrWPkTdanmdcHjjk5Fsin3cLxtVccGr1LaWz148PjdXRBPNk88MSLnzeTVtAqbpBdb38ZMUGH45iy3JapE0JBJLwLMqmPx1P48GGODyD_IqxGKEWnAN-y8QexUOMPZU3JXWdeKQKox-nt4BlPoyXy7Xwf1zum2vzT9N6oAUK2h1iB">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent"></div>
+<!-- Floating Live Status on Hero Image -->
+<div class="absolute bottom-2.5 right-3 left-3 flex items-center justify-between text-on-primary">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm text-secondary-fixed" data-icon="shield">shield</span>
+<span class="text-label-sm font-label-sm font-medium">نظام محمي ومشفر بالكامل</span>
+</div>
+<span class="text-label-sm font-numeric-code bg-primary-container/80 px-2 py-0.5 rounded-lg border border-primary-fixed-dim/30">دائرة استئناف القاهرة</span>
+</div>
+</div>
+<!-- Mini Interactive Snapshot Mockup -->
+<div class="flex items-center justify-between bg-surface-container-low rounded-lg p-2.5 border border-outline-variant/60">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-base" data-icon="calendar_today">calendar_today</span>
+</div>
+<div>
+<p class="text-title-sm font-title-sm text-primary">رول جلسات الغد</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">٤ جلسات • محكمة جنوب الجيزة</p>
+</div>
+</div>
+<span class="text-label-md font-numeric-code px-2 py-1 rounded bg-secondary-fixed/50 text-on-secondary-fixed font-semibold">
+              ٠٩:٣٠ ص
+            </span>
+</div>
+</div>
+</section>
+<!-- 3. Key Metrics / Trust Bar -->
+<section class="px-margin py-2">
+<div class="grid grid-cols-3 gap-2 bg-surface-container rounded-xl p-2.5 border border-outline-variant/40 text-center"><div class="flex flex-col items-center">
+<span class="text-numeric-code font-numeric-code text-primary text-sm font-bold">١٠٠٪</span>
+<span class="text-[11px] font-label-sm text-on-surface-variant">بديل الورقي</span>
+</div>
+<div class="flex flex-col items-center border-x border-outline-variant/50 px-1">
+<span class="text-numeric-code font-numeric-code text-primary text-sm font-bold">تسجيل فوري</span>
+<span class="text-[11px] font-label-sm text-on-surface-variant">بدون تعقيد</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-primary" data-icon="offline_pin">offline_pin</span>
+<span class="text-[11px] font-label-sm text-primary font-bold">دون إنترنت</span>
+</div>
+<span class="text-[11px] font-label-sm text-on-surface-variant">جاهز دائماً</span>
+</div></div>
+</section>
+<!-- 4. Feature Highlights / Bento Style Cards -->
+<section class="px-margin pt-3 pb-6 flex flex-col gap-2.5">
+<div class="flex items-center justify-between mb-1"><h2 class="text-title-md font-title-md text-primary">الأقسام الأربعة الأساسية للأجندة</h2>
+<span class="text-label-sm font-label-sm text-secondary font-semibold">بسيطة ومباشرة</span></div>
+<div class="grid grid-cols-2 gap-2.5"><!-- Card 1: الجلسات اليومية -->
+<div class="bg-surface-container-lowest rounded-xl p-3 border border-outline-variant shadow-sm flex flex-col justify-between hover:border-primary/50 transition-colors">
+<div>
+<div class="w-8 h-8 rounded-lg bg-surface-container text-primary flex items-center justify-center mb-2.5">
+<span class="material-symbols-outlined text-base" data-icon="calendar_today">calendar_today</span>
+</div>
+<h3 class="text-title-sm font-title-sm text-primary">الجلسات اليومية</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1 leading-snug">
+متابعة رول الجلسات ومواعيد المحاكم والقرارات بسهولة ودقة.
+</p>
+</div>
+<div class="mt-2.5 pt-2 border-t border-outline-variant/40 flex items-center justify-between text-secondary">
+<span class="text-[11px] font-label-sm">رول الجلسات</span>
+<span class="material-symbols-outlined text-sm rtl:-scale-x-100" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<!-- Card 2: التوكيلات -->
+<div class="bg-surface-container-lowest rounded-xl p-3 border border-outline-variant shadow-sm flex flex-col justify-between hover:border-primary/50 transition-colors">
+<div>
+<div class="w-8 h-8 rounded-lg bg-surface-container text-primary flex items-center justify-center mb-2.5">
+<span class="material-symbols-outlined text-base" data-icon="badge">badge</span>
+</div>
+<h3 class="text-title-sm font-title-sm text-primary">التوكيلات</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1 leading-snug">
+فهرس مدمج وسريع لبيانات التوكيلات وأرقامها والموكلين دون تعقيد.
+</p>
+</div>
+<div class="mt-2.5 pt-2 border-t border-outline-variant/40 flex items-center justify-between text-secondary">
+<span class="text-[11px] font-label-sm">فهرس التوكيلات</span>
+<span class="material-symbols-outlined text-sm rtl:-scale-x-100" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<!-- Card 3: أوراق المحضرين -->
+<div class="bg-surface-container-lowest rounded-xl p-3 border border-outline-variant shadow-sm flex flex-col justify-between hover:border-primary/50 transition-colors">
+<div>
+<div class="w-8 h-8 rounded-lg bg-surface-container text-primary flex items-center justify-center mb-2.5">
+<span class="material-symbols-outlined text-base" data-icon="description">description</span>
+</div>
+<h3 class="text-title-sm font-title-sm text-primary">أوراق المحضرين</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1 leading-snug">
+متابعة إعلانات أقلام المحضرين ومواعيد الجلسات والتسليم.
+</p>
+</div>
+<div class="mt-2.5 pt-2 border-t border-outline-variant/40 flex items-center justify-between text-secondary">
+<span class="text-[11px] font-label-sm">أقلام المحضرين</span>
+<span class="material-symbols-outlined text-sm rtl:-scale-x-100" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<!-- Card 4: الأعمال الإدارية -->
+<div class="bg-surface-container-lowest rounded-xl p-3 border border-outline-variant shadow-sm flex flex-col justify-between hover:border-primary/50 transition-colors">
+<div>
+<div class="w-8 h-8 rounded-lg bg-surface-container text-primary flex items-center justify-center mb-2.5">
+<span class="material-symbols-outlined text-base" data-icon="task_alt">task_alt</span>
+</div>
+<h3 class="text-title-sm font-title-sm text-primary">الأعمال الإدارية</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1 leading-snug">
+تسجيل ومتابعة الأعمال الإدارية وسكرتارية الجلسات ومواعيدها.
+</p>
+</div>
+<div class="mt-2.5 pt-2 border-t border-outline-variant/40 flex items-center justify-between text-secondary">
+<span class="text-[11px] font-label-sm">المهام الإدارية</span>
+<span class="material-symbols-outlined text-sm rtl:-scale-x-100" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div></div>
+<!-- Social Proof Quote / Testimonial Strip -->
+<div class="mt-2 p-3 bg-surface-container-high/60 rounded-xl border border-outline-variant/50 flex items-start gap-2.5"><span class="material-symbols-outlined text-secondary text-xl shrink-0" data-icon="format_quote">format_quote</span>
+<div class="text-right">
+<p class="text-body-sm font-body-sm text-on-surface italic">
+"استغنيت تماماً عن الدفاتر الورقية.. تسجيل رول الجلسات والأعمال الإدارية أصبح يتم في ثوانٍ معدودة وبكل وضوح."
+</p>
+<p class="text-[11px] font-label-sm text-outline font-semibold mt-1">
+— أستاذ أحمد عبد الله، محامٍ بالاستئناف العالي
+</p>
+</div></div>
+</section>
+</div>
+<!-- 5. Primary Action Area (Fixed / Anchored Bottom Section) -->
+<!-- Notice: As per Semantic Shell mandate, the full 5-tab BottomNavBar is suppressed on this Onboarding/Splash screen to prioritize transactional conversion canvas. -->
+<footer class="w-full px-margin pt-3 pb-4 bg-surface/95 backdrop-blur-md border-t border-outline-variant/40 z-30 flex flex-col gap-2">
+<!-- Main CTA Button -->
+<a class="w-full h-11 bg-primary text-on-primary rounded-xl flex items-center justify-center gap-2 text-title-md font-title-md shadow-md hover:bg-primary-container active:scale-[0.98] transition-all" href="#register"><span class="">ابدأ استخدام الأجندة القضائية مجاناً</span>
+<span class="material-symbols-outlined text-lg rtl:-scale-x-100" data-icon="arrow_forward">arrow_forward</span></a>
+<!-- Secondary Action -->
+<a class="w-full h-10 bg-surface-container-lowest text-primary border border-outline-variant rounded-xl flex items-center justify-center gap-1.5 text-title-sm font-title-sm hover:bg-surface-container active:scale-[0.98] transition-all" href="#login">
+<span class="">تسجيل الدخول لمكتب حالي</span>
+</a>
+<!-- Reassuring Note -->
+<div class="flex items-center justify-center gap-1.5 text-center mt-1">
+<span class="material-symbols-outlined text-xs text-secondary" data-icon="verified_user">verified_user</span>
+<span class="text-[11px] font-label-sm text-on-surface-variant">
+          لا يتطلب بطاقة ائتمان • تجربة مجانية لكافة ميزات النظام لمدة ١٤ يوماً
+        </span>
+</div>
+</footer>
+</div>
+
+
+</body></html>

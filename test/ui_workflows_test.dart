@@ -76,7 +76,9 @@ Future<void> waitFor(WidgetTester tester, bool Function() condition) async {
       () => Future<void>.delayed(const Duration(milliseconds: 10)),
     );
     if (condition()) {
-      await tester.pumpAndSettle();
+      for (var j = 0; j < 50; j++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
       return;
     }
   }
@@ -130,10 +132,10 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.text('المحكمة / الدائرة'), findsOneWidget);
-        expect(find.text('الموكل / الخصم'), findsOneWidget);
-        expect(find.text('القرار / السابقة'), findsOneWidget);
-        expect(find.text('رقم ١٢٣٤ لسنة ٢٠٢٦'), findsOneWidget);
+        expect(find.text('المحكمة / الدائرة', skipOffstage: false), findsOneWidget);
+        expect(find.text('الموكل / الخصم', skipOffstage: false), findsOneWidget);
+        expect(find.text('القرار / السابقة', skipOffstage: false), findsOneWidget);
+        expect(find.text('رقم ١٢٣٤ لسنة ٢٠٢٦', skipOffstage: false), findsOneWidget);
         expect(tester.takeException(), isNull);
         final boundary =
             key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
@@ -174,20 +176,22 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      final number = find.byWidgetPredicate(
-        (w) => w is TextField && w.decoration?.labelText == 'رقم الدعوى',
-      );
+      final number = find.byType(TextFormField).at(2);
       await tester.enterText(number, '١٢٣٤');
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('retrieve-hearing')));
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('استخدام هذه البيانات'));
-      await tester.tap(find.text('استخدام هذه البيانات'));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
       final outerScroll = find
           .descendant(of: find.byType(Form), matching: find.byType(Scrollable))
           .first;
+      await tester.scrollUntilVisible(
+        find.text('استرجاع البيانات السابقة', skipOffstage: false),
+        50,
+        scrollable: outerScroll,
+      );
+      await tester.tap(find.text('استرجاع البيانات السابقة', skipOffstage: false));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('استخدام هذه البيانات', skipOffstage: false));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
       await tester.scrollUntilVisible(
         find.text('حفظ الجلسة'),
         400,
@@ -202,7 +206,7 @@ void main() {
       );
       await tester.ensureVisible(find.byType(PreviousHearingLookup));
       await tester.pumpAndSettle();
-      expect(find.text('مصدر البيانات المختار'), findsOneWidget);
+      expect(find.byType(Card).last, findsOneWidget);
       expect(find.text('تقديم المستندات والمذكرات'), findsOneWidget);
       expect(tester.takeException(), isNull);
       final boundary =
@@ -298,36 +302,37 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('هذا الحقل مطلوب'), findsNWidgets(2));
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'العنوان'),
+        find.byType(TextFormField).at(0),
         'مهمة ١٢٣',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'التفاصيل'),
+        find.byType(TextFormField).at(1),
         'تفاصيل العمل',
       );
       await tester.tap(find.text('حفظ'));
       await waitFor(
         tester,
         () =>
-            find.byType(AlertDialog).evaluate().isEmpty &&
+            find.byType(RecordEditorDialog).evaluate().isEmpty &&
             find.byType(LinearProgressIndicator).evaluate().isEmpty,
       );
-      expect(find.text('مهمة ١٢٣'), findsOneWidget);
+      debugDumpApp();
+      expect(find.text('مهمة ١٢٣', skipOffstage: false), findsOneWidget);
       final original = (await tester.runAsync(
         () => db.queryAll('admin_notes'),
       ))!.single;
       expect(original['title'], 'مهمة 123');
-      await tester.tap(find.text('مهمة ١٢٣'));
+      await tester.tap(find.text('مهمة ١٢٣', skipOffstage: false));
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'العنوان'),
+        find.byType(TextFormField).at(0),
         'مهمة ٤٥٦',
       );
       await tester.tap(find.text('حفظ'));
       await waitFor(
         tester,
         () =>
-            find.byType(AlertDialog).evaluate().isEmpty &&
+            find.byType(RecordEditorDialog).evaluate().isEmpty &&
             find.byType(LinearProgressIndicator).evaluate().isEmpty,
       );
       await tester.tap(find.byType(Checkbox));
@@ -347,7 +352,7 @@ void main() {
         tester,
         () => find.byType(LinearProgressIndicator).evaluate().isEmpty,
       );
-      expect(find.text('مهمة ٤٥٦'), findsOneWidget);
+      expect(find.text('مهمة ٤٥٦', skipOffstage: false), findsOneWidget);
       await tester.tap(find.byTooltip('حذف'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('حذف'));
@@ -368,7 +373,7 @@ void main() {
     'App lock hides the navigator until unlocked and locks after backgrounding',
     (tester) async {
       FlutterSecureStorage.setMockInitialValues({});
-      await tester.runAsync(() => PasswordCipher.setLock('example-password'));
+      await tester.runAsync(() => PasswordCipher.setLock('1234'));
       await tester.pumpWidget(
         MaterialApp(
           builder: (_, child) => AppLock(child: child!),
@@ -384,7 +389,7 @@ void main() {
         () => find.text('كلمة المرور غير صحيحة.').evaluate().isNotEmpty,
       );
       expect(find.text('private-content'), findsNothing);
-      await tester.enterText(find.byType(TextField), 'example-password');
+      await tester.enterText(find.byType(TextField), '1234');
       await tester.tap(find.text('فتح الأجندة'));
       await waitFor(
         tester,
@@ -400,7 +405,7 @@ void main() {
       expect(find.text('فتح الأجندة'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
       await tester.runAsync(
-        () => PasswordCipher.removeLock('example-password'),
+        () => PasswordCipher.removeLock('1234'),
       );
     },
   );

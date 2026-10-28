@@ -28,12 +28,12 @@ class HearingSuggestion {
 
   static List<HearingSuggestion> group(Iterable<Session> records) {
     final groups =
-        <(String, int, String, String, String, String), List<Session>>{};
+        <(String, String, String, String, String, String), List<Session>>{};
     String normalized(String value) => ArabicFormat.normalize(value).trim();
     for (final hearing in records) {
       final key = (
         normalized(hearing.caseNumber),
-        hearing.caseYear,
+        normalized(hearing.caseYear.toString()),
         normalized(hearing.courtName),
         normalized(hearing.circuit),
         normalized(hearing.clientName),

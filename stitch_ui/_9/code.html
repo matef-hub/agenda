@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html class="h-full" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>إضافة جلسة قضائية جديدة</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#1b4d3e", // Deep elegant legal forest green
+            "primary-hover": "#143a2f",
+            "primary-light": "#e8f3ef",
+            "background-light": "#f8fafc",
+            "background-dark": "#0f172a",
+          },
+          fontFamily: {
+            display: ["'Cairo'", "sans-serif"],
+          },
+          borderRadius: {
+            DEFAULT: "0.75rem",
+          },
+        },
+      },
+    };
+  </script>
+<style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .material-symbols-rounded {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }input[type='number']::-webkit-inner-spin-button,
+    input[type='number']::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 min-h-screen flex justify-center selection:bg-emerald-200">
+<main class="w-full max-w-md min-h-screen flex flex-col bg-background-light dark:bg-background-dark pb-28">
+<header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#e2e7e2] px-4 py-3.5 flex items-center justify-between transition-colors">
+<div class="flex items-center gap-3">
+<button aria-label="الرجوع" class="w-9 h-9 flex items-center justify-center rounded-xl bg-[#f4f6f4] text-[#1e3f2e] border border-[#e2e7e2] hover:bg-[#eaf1ec] active:scale-95 transition-all" type="button">
+<span class="material-symbols-rounded text-xl">arrow_forward</span>
+</button>
+<div class="flex items-center gap-2">
+<span class="w-1 h-6 bg-[#c59a45] rounded-full inline-block"></span>
+<div>
+<h1 class="text-base font-bold text-[#1e3f2e] leading-tight">إضافة جلسة جديدة</h1>
+<p class="text-[11px] text-slate-500 font-medium">إدارة القضايا والملفات القضائية</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="w-9 h-9 rounded-xl flex items-center justify-center text-[#1e3f2e] hover:bg-[#f4f6f4] bg-white border border-[#e2e7e2] transition-colors shadow-xs" onclick="document.documentElement.classList.toggle('dark')" title="تبديل الوضع" type="button">
+<span class="material-symbols-rounded text-lg dark:hidden">dark_mode</span>
+<span class="material-symbols-rounded text-lg hidden dark:block">light_mode</span>
+</button>
+<button class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-[#f4f6f4] bg-white border border-[#e2e7e2] transition-colors shadow-xs" title="إرشادات ومساعدة" type="button">
+<span class="material-symbols-rounded text-lg">help_outline</span>
+</button>
+</div>
+</header>
+<form class="p-4 space-y-4"><!-- Section 1: Date & Time Card -->
+<div class="bg-white rounded-2xl p-4 shadow-sm border border-[#e2e7e2] space-y-3">
+<div class="flex items-center justify-between border-b border-[#f0f4f1] pb-2.5">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-xl bg-[#eff5f1] text-[#1e3f2e] border border-[#d2dfd6] flex items-center justify-center font-bold">
+<span class="material-symbols-rounded text-base">calendar_month</span>
+</div>
+<div>
+<span class="text-xs font-bold text-[#1e3f2e]">تاريخ وساعة الجلسة</span>
+<span class="text-[10px] text-slate-400 block">حدد موعد انعقاد الرول</span>
+</div>
+</div>
+<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-[#eff5f1] text-[#1e3f2e] border border-[#d2dfd6]">مطلوب</span>
+</div>
+<div class="grid grid-cols-5 gap-2.5 pt-1">
+<div class="col-span-3 space-y-1">
+<label class="text-[11px] font-semibold text-slate-700">تاريخ الجلسة</label>
+<div class="relative rounded-xl border border-[#e2e7e2] focus-within:border-[#1e3f2e] bg-[#f8faf9] transition shadow-xs flex items-center">
+<span class="pr-2.5 text-[#1e3f2e] flex items-center pointer-events-none">
+<span class="material-symbols-rounded text-base">event</span>
+</span>
+<input class="w-full text-xs font-semibold bg-transparent border-0 text-slate-900 py-2.5 pr-1 pl-2 focus:ring-0" type="date" value="2026-10-25"/>
+</div>
+</div>
+<div class="col-span-2 space-y-1">
+<label class="text-[11px] font-semibold text-slate-700">وقت الرول</label>
+<div class="relative rounded-xl border border-[#e2e7e2] focus-within:border-[#1e3f2e] bg-[#f8faf9] transition shadow-xs flex items-center">
+<span class="pr-2 text-[#1e3f2e] flex items-center pointer-events-none">
+<span class="material-symbols-rounded text-base">schedule</span>
+</span>
+<input class="w-full text-xs font-semibold bg-transparent border-0 text-slate-900 py-2.5 pr-1 pl-2 focus:ring-0 text-center" type="time" value="09:30"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 2: Court & Lawsuit Details -->
+<details class="group bg-white rounded-2xl border border-[#e2e7e2] p-4 shadow-sm" open="">
+<summary class="flex items-center justify-between cursor-pointer list-none select-none pb-2 border-b border-[#f0f4f1]">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-xl bg-[#eff5f1] text-[#1e3f2e] border border-[#d2dfd6] flex items-center justify-center">
+<span class="material-symbols-rounded text-base">account_balance</span>
+</div>
+<h2 class="text-xs font-bold text-[#1e3f2e]">بيانات المحكمة والدعوى</h2>
+</div>
+<span class="material-symbols-rounded text-slate-400 text-lg transition-transform duration-200 group-open:rotate-180">expand_more</span>
+</summary>
+<div class="space-y-3 pt-3">
+<div class="space-y-1">
+<label class="text-[11px] font-semibold text-slate-700 flex items-center gap-1">
+اسم المحكمة
+<span class="text-emerald-700 font-bold">*</span>
+</label>
+<div class="relative rounded-xl border border-[#e2e7e2] focus-within:border-[#1e3f2e] bg-[#f8faf9] transition shadow-xs flex items-center">
+<span class="pr-3 text-slate-400 flex items-center pointer-events-none">
+<span class="material-symbols-rounded text-base">gavel</span>
+</span>
+<input class="w-full pr-2 pl-3 py-2.5 bg-transparent border-0 text-xs font-medium text-slate-900 focus:ring-0 placeholder:text-slate-400" placeholder="مثال: محكمة الاستئناف - القاهرة الجديدة" type="text" value="محكمة الاستئناف - القاهرة الجديدة"/>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-2">
+<div class="col-span-6 space-y-1">
+<label class="text-[11px] font-semibold text-slate-700">الدائرة</label>
+<div class="relative rounded-xl border border-[#e2e7e2] focus-within:border-[#1e3f2e] bg-[#f8faf9] transition shadow-xs flex items-center">
+<span class="pr-2.5 text-slate-400 flex items-center pointer-events-none">
+<span class="material-symbols-rounded text-base">domain</span>
+</span>
+<input class="w-full pr-1.5 pl-2 py-2.5 bg-transparent border-0 text-xs font-medium text-slate-900 focus:ring-0 placeholder:text-slate-400" placeholder="مثال: مدني كلي 3" type="text" value="مدني كلي 3"/>
+</div>
+</div>
+<div class="col-span-4 space-y-1">
+<label class="text-[11px] font-semibold text-slate-700">رقم الدعوى</label>
+<div class="relative rounded-xl border border-[#e2e7e2] focus-within:border-[#1e3f2e] bg-[#f8faf9] transition shadow-xs">
+<input class="w-full px-2 py-2.5 bg-transparent border-0 text-xs font-bold text-slate-900 text-center focus:ring-0 placeholder:text-slate-400" placeholder="5428" type="number" value="5428"/>
+</div>
+</div>
+<div class="col-span-2 space-y-1">
+<label class="text-[11px] font-semibold text-slate-700">السنة</label>
+<div class="relative rounded-xl border border-[#e2e7e2] focus-within:border-[#1e3f2e] bg-[#f8faf9] transition shadow-xs">
+<input class="w-full px-1 py-2.5 bg-transparent border-0 text-xs font-bold text-slate-900 text-center focus:ring-0" type="number" value="2026"/>
+</div>
+</div>
+</div>
+</div>
+</details>
+<!-- Section 3: Litigant Parties -->
+<details class="group bg-white rounded-2xl border border-[#e2e7e2] p-4 shadow-sm" open="">
+<summary class="flex items-center justify-between cursor-pointer list-none select-none pb-2 border-b border-[#f0f4f1]">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-xl bg-[#eff5f1] text-[#1e3f2e] border border-[#d2dfd6] flex items-center justify-center">
+<span class="material-symbols-rounded text-base">groups</span>
+</div>
+<h2 class="text-xs font-bold text-[#1e3f2e]">أطراف الخصومة والوكالة</h2>
+</div>
+<span class="material-symbols-rounded text-slate-400 text-lg transition-transform duration-200 group-open:rotate-180">expand_more</span>
+</summary>
+<div class="space-y-3.5 pt-3">
+<!-- Client (الموكل) -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between">
+<label class="text-[11px] font-bold text-[#1e3f2e] flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-[#1e3f2e] inline-block"></span>
+الموكل (طرفنا)
+</label>
+<span class="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">وكيل معتمد</span>
+</div>
+<div class="grid grid-cols-12 gap-2">
+<div class="col-span-7 relative rounded-xl border border-[#e2e7e2] focus-within:border-[#1e3f2e] bg-[#f8faf9] shadow-xs flex items-center">
+<span class="pr-2.5 text-slate-400 flex items-center pointer-events-none">
+<span class="material-symbols-rounded text-sm">person</span>
+</span>
+<input class="w-full pr-1.5 pl-2 py-2.5 bg-transparent border-0 text-xs font-medium text-slate-900 focus:ring-0 placeholder:text-slate-400" placeholder="اسم الموكل رباعي" type="text" value="المستشار / أحمد فهمي رضوان"/>
+</div>
+<div class="col-span-5 relative rounded-xl border border-[#e2e7e2] focus-within:border-[#1e3f2e] bg-[#f8faf9] shadow-xs">
+<select class="w-full py-2.5 pr-2.5 pl-6 bg-transparent border-0 text-xs font-semibold text-slate-800 focus:ring-0">
+<option selected="" value="plaintiff">مدعي</option>
+<option value="defendant">مدعى عليه</option>
+<option value="appellant">مستأنف</option>
+<option value="appellee">مستأنف ضده</option>
+<option value="petitioner">طالب</option>
+</select>
+</div>
+</div>
+</div>
+<div class="border-t border-dashed border-[#e2e7e2]"></div>
+<!-- Opposing Party (الخصم) -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between">
+<label class="text-[11px] font-bold text-[#7b581e] flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-[#c59a45] inline-block"></span>
+الخصم (الطرف المقابل)
+</label>
+<span class="text-[10px] font-medium text-slate-500">المدعى عليه</span>
+</div>
+<div class="grid grid-cols-12 gap-2">
+<div class="col-span-7 relative rounded-xl border border-[#e2e7e2] focus-within:border-[#1e3f2e] bg-[#f8faf9] shadow-xs flex items-center">
+<span class="pr-2.5 text-slate-400 flex items-center pointer-events-none">
+<span class="material-symbols-rounded text-sm">person_outline</span>
+</span>
+<input class="w-full pr-1.5 pl-2 py-2.5 bg-transparent border-0 text-xs font-medium text-slate-900 focus:ring-0 placeholder:text-slate-400" placeholder="اسم الخصم / الشركة" type="text" value="محمود الدغار"/>
+</div>
+<div class="col-span-5 relative rounded-xl border border-[#e2e7e2] focus-within:border-[#1e3f2e] bg-[#f8faf9] shadow-xs">
+<select class="w-full py-2.5 pr-2.5 pl-6 bg-transparent border-0 text-xs font-semibold text-slate-800 focus:ring-0">
+<option selected="" value="defendant">مدعى عليه</option>
+<option value="plaintiff">مدعي</option>
+<option value="appellee">مستأنف ضده</option>
+<option value="appellant">مستأنف</option>
+<option value="respondent">معلن إليه</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+</details>
+<!-- Section 4: Procedures & Hearing Decision -->
+<details class="group bg-white rounded-2xl border border-[#e2e7e2] p-4 shadow-sm" open="">
+<summary class="flex items-center justify-between cursor-pointer list-none select-none pb-2 border-b border-[#f0f4f1]">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-xl bg-[#eff5f1] text-[#1e3f2e] border border-[#d2dfd6] flex items-center justify-center">
+<span class="material-symbols-rounded text-base">history_edu</span>
+</div>
+<h2 class="text-xs font-bold text-[#1e3f2e]">سير الإجراءات والقرارات</h2>
+</div>
+<span class="material-symbols-rounded text-slate-400 text-lg transition-transform duration-200 group-open:rotate-180">expand_more</span>
+</summary>
+<div class="space-y-3 pt-3">
+<div class="space-y-1">
+<label class="text-[11px] font-semibold text-slate-700 flex items-center justify-between">
+<span>الجلسة السابقة (القرار / التاريخ)</span>
+<span class="text-[10px] text-slate-400">سابق الجلسة: ٢٠٢٤/١١/٣٠</span>
+</label>
+<div class="relative rounded-xl border border-[#e2e7e2] focus-within:border-[#1e3f2e] bg-[#f8faf9] transition shadow-xs flex items-center">
+<span class="pr-3 text-slate-400 flex items-center pointer-events-none">
+<span class="material-symbols-rounded text-base">restore</span>
+</span>
+<input class="w-full pr-2 pl-3 py-2.5 bg-transparent border-0 text-xs font-medium text-slate-900 focus:ring-0 placeholder:text-slate-400" placeholder="مثال: تأجيل لتقديم المستندات والمذكرات" type="text" value="تأجيل لتقديم المستندات والمذكرات"/>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[11px] font-semibold text-slate-700 flex items-center gap-1">
+القرار الصادر / المطلوب بالجلسة
+</label>
+<div class="relative rounded-xl border border-[#e2e7e2] focus-within:border-[#1e3f2e] bg-[#f8faf9] transition shadow-xs p-1">
+<textarea class="w-full p-2 bg-transparent border-0 text-xs font-medium text-slate-900 focus:ring-0 placeholder:text-slate-400 resize-none" placeholder="القرار الصادر في الجلسة، منطوق الحكم، أو ما تقرر اتخاذه..." rows="2"></textarea>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex items-center justify-between">
+<label class="text-[11px] font-semibold text-slate-700">ملاحظات ومهام مطلوبة</label>
+<span class="text-[10px] text-[#718277] flex items-center gap-0.5">
+<span class="material-symbols-rounded text-xs">lock</span>
+سري ومحمي
+</span>
+</div>
+<div class="relative rounded-xl border border-[#e2e7e2] focus-within:border-[#1e3f2e] bg-[#f8faf9] transition shadow-xs p-1">
+<textarea class="w-full p-2 bg-transparent border-0 text-xs font-medium text-slate-900 focus:ring-0 placeholder:text-slate-400 resize-none" placeholder="إضافة تكليفات المساعدين، إيداع مذكرة، تجهيز توكيلات..." rows="2"></textarea>
+</div>
+</div>
+</div>
+</details>
+<!-- Section 5: Reminder & Alert Notification -->
+<div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-[#e2e7e2] shadow-xs">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-xl bg-[#eff5f1] text-[#1e3f2e] border border-[#d2dfd6] flex items-center justify-center">
+<span class="material-symbols-rounded text-base">notifications_active</span>
+</div>
+<div>
+<p class="text-xs font-bold text-[#1e3f2e]">تنبيه قبل الموعد</p>
+<p class="text-[10px] text-slate-500">إشعار تلقائي قبل موعد الجلسة بـ 24 ساعة</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1e3f2e]"></div>
+</label>
+</div></form>
+<div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-md border-t border-[#e2e7e2] p-3.5 z-40 shadow-lg">
+<div class="flex items-center gap-2.5">
+<button class="flex-[2] bg-[#1e3f2e] hover:bg-[#162e22] active:scale-[0.98] text-white font-bold py-3 px-5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm" type="submit">
+<svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7"></path>
+</svg>
+<span>حفظ الجلسة</span>
+</button>
+<button class="flex-1 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-700 font-semibold py-3 px-4 rounded-xl border border-slate-300 flex items-center justify-center gap-1.5 transition-all text-sm" type="button">
+<span>إلغاء</span>
+</button>
+</div>
+<div class="w-full pt-2 flex justify-center">
+<div class="w-28 h-1 bg-slate-200 rounded-full"></div>
+</div>
+</div>
+</main>
+</body></html>

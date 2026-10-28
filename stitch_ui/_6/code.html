@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>إضافة توكيل - نظام المحاماة</title>
+<!-- Google Fonts: IBM Plex Sans Arabic -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#1e3f2e', // Dark Olive Green
+              hover: '#162e22',
+              soft: '#eff5f1',
+              accent: '#315f47',
+              border: '#d2dfd6'
+            },
+            sand: '#f8faf9',
+            surface: '#ffffff'
+          },
+          fontFamily: {
+            arabic: ['"IBM Plex Sans Arabic"', 'system-ui', 'sans-serif']
+          },
+          boxShadow: {
+            modal: '0 25px 50px -12px rgba(18, 38, 28, 0.25), 0 0 0 1px rgba(18, 38, 28, 0.05)',
+            card: '0 2px 8px -2px rgba(30, 63, 46, 0.08)'
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles -->
+<style data-purpose="base-styling">
+    body {
+      font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* Smooth scroll & modern inputs */
+    input::placeholder, textarea::placeholder {
+      color: #94a3b8;
+      font-size: 0.875rem;
+    }
+
+    /* Modal appearance transitions */
+    .modal-sheet {
+      max-height: calc(100vh - 2.5rem);
+    }
+
+    /* Custom scrollbar for inner modal */
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 min-h-screen flex items-center justify-center p-0 sm:p-4 overflow-hidden antialiased">
+<!-- BEGIN: MobileDeviceContainer -->
+<!-- Container mimicking iPhone / Mobile frame with realistic status bar & backdrop -->
+<div class="relative w-full max-w-[430px] h-[100dvh] sm:h-[915px] sm:max-h-[92vh] bg-[#f4f7f5] sm:rounded-[42px] overflow-hidden shadow-2xl flex flex-col justify-end border sm:border-slate-800">
+<!-- BEGIN: BackgroundScreenMockup -->
+<!-- Simulated background dashboard showing "التوكيلات" list with blur effect -->
+<div class="absolute inset-0 z-0 flex flex-col pointer-events-none select-none filter blur-[5px] brightness-[0.78] transition duration-300">
+<!-- Simulated Top Bar -->
+<div class="h-11 pt-3 px-6 flex justify-between items-center text-xs text-slate-800 font-semibold">
+<span>12:38</span>
+<div class="flex items-center gap-1.5 opacity-80">
+<svg class="w-3.5 h-3.5 fill-current" viewbox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"></path></svg>
+<svg class="w-4 h-4 fill-current" viewbox="0 0 24 24"><path d="M2 17h20v2H2zm1.15-4.05L4 11.97l3.79 1.9 1.53-.59L2 9.53l.79-1.9 8.94 3.5 1.54-.58L9.08 3.86l1.3-.77 5.4 6.7 4.22.42v2.22l-16.85.52z"></path></svg>
+<span>100%</span>
+</div>
+</div>
+<!-- Simulated App Header -->
+<div class="px-5 pt-3 pb-4 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-9 h-9 rounded-xl bg-white shadow-sm flex items-center justify-center text-brand">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<span class="text-xl font-bold text-brand">التوكيلات</span>
+</div>
+<div class="h-8 px-3 rounded-full bg-brand/10 text-brand text-xs font-semibold flex items-center">
+          الجلسات اليومية
+        </div>
+</div>
+<!-- Simulated List Items -->
+<div class="p-4 space-y-3">
+<div class="h-10 bg-white rounded-xl shadow-sm border border-slate-200"></div>
+<div class="h-28 bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+<div class="w-2/3 h-4 bg-slate-200 rounded mb-2"></div>
+<div class="w-1/2 h-3 bg-slate-100 rounded"></div>
+</div>
+<div class="h-28 bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+<div class="w-3/4 h-4 bg-slate-200 rounded mb-2"></div>
+<div class="w-1/3 h-3 bg-slate-100 rounded"></div>
+</div>
+</div>
+</div>
+<!-- END: BackgroundScreenMockup -->
+<!-- BEGIN: DarkDimmerOverlay -->
+<div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-10 transition-opacity"></div>
+<!-- END: DarkDimmerOverlay -->
+<!-- BEGIN: ModalContainer -->
+<!-- The main popup modal requested from IMAGE_2 with refined Juris-Modern styling -->
+<section class="relative z-20 w-full bg-white rounded-t-[32px] sm:rounded-b-[36px] shadow-modal border-t border-brand/10 flex flex-col overflow-hidden max-h-[94%] animate-in slide-in-from-bottom duration-300" data-purpose="modal-dialog">
+<!-- Top Handle indicator for iOS modal sheet feel -->
+<div class="w-full flex justify-center pt-2.5 pb-1">
+<div class="w-10 h-1 bg-slate-300 rounded-full"></div>
+</div>
+<!-- Modal Header -->
+<header class="px-6 py-3 border-b border-slate-100 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-xl bg-brand-soft text-brand flex items-center justify-center font-medium shadow-sm border border-brand/10">
+<!-- Legal Seal / Certificate Icon -->
+<svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+<polyline points="14 2 14 8 20 8"></polyline>
+<path d="M12 18v-4"></path>
+<path d="M10 16h4"></path>
+</svg>
+</div>
+<div>
+<h2 class="text-lg font-bold text-slate-900 leading-tight">إضافة توكيل</h2>
+<p class="text-[11px] text-slate-500 font-medium">تسجيل وتوثيق وكالة رسمية جديدة</p>
+</div>
+</div>
+<!-- Close Button -->
+<button aria-label="إغلاق النافذة" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+</svg>
+</button>
+</header>
+<!-- BEGIN: ModalFormContent -->
+<!-- Scrollable form body containing the input fields matching IMAGE_2 -->
+<div class="px-5 py-4 overflow-y-auto custom-scroll space-y-3.5 flex-1">
+<!-- Field 1: اسم الموكل -->
+<div class="space-y-1" data-purpose="field-client-name">
+<label class="block text-xs font-semibold text-slate-700">اسم الموكل <span class="text-emerald-700">*</span></label>
+<div class="relative rounded-xl border border-slate-200 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand bg-sand/60 transition shadow-sm">
+<div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7 7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<input class="w-full pr-10 pl-3 py-2.5 bg-transparent border-0 text-sm text-slate-900 focus:ring-0 placeholder:text-slate-400 font-medium" placeholder="الاسم الثلاثي أو الصفة الرسمية" type="text" value="المستشار / أحمد فهمي رضوان"/>
+</div>
+</div>
+<!-- Field 2: رقم التوكيل و الحرف / السنة (Grid) -->
+<div class="grid grid-cols-12 gap-2" data-purpose="field-power-number">
+<!-- رقم التوكيل -->
+<div class="col-span-7 space-y-1">
+<label class="block text-xs font-semibold text-slate-700">رقم التوكيل <span class="text-emerald-700">*</span></label>
+<div class="relative rounded-xl border border-slate-200 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand bg-sand/60 transition shadow-sm">
+<input class="w-full px-3 py-2.5 bg-transparent border-0 text-sm text-slate-900 focus:ring-0 placeholder:text-slate-400 font-medium" placeholder="مثال: 4182" type="text"/>
+</div>
+</div>
+<!-- حرف / سنة التوثيق -->
+<div class="col-span-5 space-y-1">
+<label class="block text-xs font-semibold text-slate-700">الحرف / السنة</label>
+<div class="relative rounded-xl border border-slate-200 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand bg-sand/60 transition shadow-sm">
+<input class="w-full px-3 py-2.5 bg-transparent border-0 text-sm text-slate-900 focus:ring-0 placeholder:text-slate-400 font-medium text-center" placeholder="ب / 2026" type="text"/>
+</div>
+</div>
+</div>
+<!-- Field 3: مكتب التوثيق -->
+<div class="space-y-1" data-purpose="field-notary-office">
+<label class="block text-xs font-semibold text-slate-700">مكتب التوثيق <span class="text-emerald-700">*</span></label>
+<div class="relative rounded-xl border border-slate-200 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand bg-sand/60 transition shadow-sm">
+<div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<input class="w-full pr-10 pl-3 py-2.5 bg-transparent border-0 text-sm text-slate-900 focus:ring-0 placeholder:text-slate-400 font-medium" placeholder="مثال: توثيق الأهرام النموذجي" type="text"/>
+</div>
+</div>
+<!-- Field 4: نوع التوكيل (Select Dropdown) -->
+<div class="space-y-1" data-purpose="field-power-type">
+<label class="block text-xs font-semibold text-slate-700">نوع التوكيل <span class="text-emerald-700">*</span></label>
+<div class="relative rounded-xl border border-slate-200 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand bg-sand/60 transition shadow-sm">
+<select class="w-full pr-3.5 pl-9 py-2.5 bg-transparent border-0 text-sm text-slate-900 focus:ring-0 font-medium appearance-none">
+<option selected="" value="1">عام رسمي في القضايا (شامل)</option>
+<option value="2">خاص بالتصرف والمنازعات العقارية</option>
+<option value="3">توكيل رسمي عام للبنوك والشركات</option>
+<option value="4">خاص بقضية محددة / شؤون أسرة</option>
+<option value="5">إلغاء أو تعديل وكالة سابقة</option>
+</select>
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+<!-- Field 5: تاريخ التوكيل (مع أيقونة مسح / تقويم) -->
+<div class="space-y-1" data-purpose="field-date">
+<label class="block text-xs font-semibold text-slate-700">تاريخ التوثيق</label>
+<div class="relative rounded-xl border border-slate-200 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand bg-sand/60 transition shadow-sm flex items-center">
+<!-- Calendar Picker -->
+<input class="w-full pr-3.5 pl-16 py-2.5 bg-transparent border-0 text-sm text-slate-900 focus:ring-0 font-medium" type="text" value="2026/10/26"/>
+<!-- Clear and Calendar Quick Action Buttons -->
+<div class="absolute inset-y-0 left-0 pl-2.5 flex items-center gap-1.5 text-slate-400">
+<button class="p-1 hover:text-slate-600 transition rounded-full hover:bg-slate-200/50" title="مسح التاريخ" type="button">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+</svg>
+</button>
+<div class="w-[1px] h-4 bg-slate-200"></div>
+<span class="p-1 text-brand">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<rect height="18" rx="2" ry="2" stroke-width="2" width="18" x="3" y="4"></rect>
+<line stroke-width="2" x1="16" x2="16" y1="2" y2="6"></line>
+<line stroke-width="2" x1="8" x2="8" y1="2" y2="6"></line>
+<line stroke-width="2" x1="3" x2="21" y1="10" y2="10"></line>
+</svg>
+</span>
+</div>
+</div>
+</div>
+<!-- Field 6: ملاحظات وبنود خاصة -->
+<div class="space-y-1" data-purpose="field-notes">
+<label class="block text-xs font-semibold text-slate-700">ملاحظات وشروط خاصة</label>
+<div class="rounded-xl border border-slate-200 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand bg-sand/60 transition shadow-sm p-1">
+<textarea class="w-full p-2 bg-transparent border-0 text-sm text-slate-900 focus:ring-0 placeholder:text-slate-400 resize-none font-medium" placeholder="اكتب أي صلاحيات محددة مثل: البيع للنفس، الإقرار، الصلح والتحكيم..." rows="2"></textarea>
+</div>
+</div>
+<!-- Extra Attachment Dropzone (إرفاق صورة التوكيل) -->
+<div class="pt-0.5" data-purpose="field-attachment">
+<div class="border border-dashed border-slate-300 hover:border-brand bg-brand-soft/30 hover:bg-brand-soft/60 rounded-xl p-3 flex items-center justify-between transition cursor-pointer group">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-white border border-brand/20 flex items-center justify-center text-brand group-hover:scale-105 transition-transform shadow-sm">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<div class="text-right">
+<p class="text-xs font-semibold text-slate-800">إرفاق نسخة التوكيل (PDF / صورة)</p>
+<p class="text-[10px] text-slate-500">حجم الملف الأقصى: 10 ميجابايت</p>
+</div>
+</div>
+<span class="text-[11px] font-bold text-brand bg-white px-2.5 py-1 rounded-md border border-brand/20 shadow-xs">رفع ملف</span>
+</div>
+</div>
+</div>
+<!-- END: ModalFormContent -->
+<!-- BEGIN: ModalActionFooter -->
+<!-- Actions: Primary save button & Cancel button as per image -->
+<footer class="p-4 bg-slate-50/90 border-t border-slate-100 flex items-center justify-between gap-3">
+<!-- Cancel Button -->
+<button class="flex-1 py-3 px-4 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold text-sm transition active:scale-95 text-center" type="button">
+          إلغاء
+        </button>
+<!-- Save Button (Dark Olive Green Brand Theme) -->
+<button class="flex-[2] py-3 px-5 rounded-xl bg-brand hover:bg-brand-hover text-white font-bold text-sm shadow-md hover:shadow-lg transition active:scale-95 flex items-center justify-center gap-2" type="button">
+<svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>حفظ التوكيل</span>
+</button>
+</footer>
+<!-- END: ModalActionFooter -->
+<!-- iOS Home Bar Indicator -->
+<div class="w-full pb-2 pt-1 flex justify-center bg-slate-50/90">
+<div class="w-32 h-1 bg-slate-300 rounded-full"></div>
+</div>
+</section>
+<!-- END: ModalContainer -->
+</div>
+<!-- END: MobileDeviceContainer -->
+</body></html>

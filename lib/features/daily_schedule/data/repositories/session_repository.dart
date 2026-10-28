@@ -22,8 +22,11 @@ class SessionRepository {
     String caseYear,
   ) async {
     final number = ArabicFormat.normalize(caseNumber).trim();
-    final year = int.tryParse(ArabicFormat.normalize(caseYear).trim());
-    if (number.isEmpty || year == null || year < 1800 || year > 2200) return [];
+    final yearText = ArabicFormat.normalize(caseYear).replaceAll(RegExp(r'\s+'), '');
+    if (number.isEmpty || !RegExp(r'^\d{1,4}\s*ق?$').hasMatch(yearText)) {
+      return [];
+    }
+    final Object year = int.tryParse(yearText) ?? yearText;
     final db = await _dbHelper.database;
     // SQLite's default trim removes only spaces. Match Dart's surrounding
     // whitespace trimming for older records too, without rewriting them.
@@ -39,6 +42,19 @@ class SessionRepository {
       orderBy: 'session_date DESC, id DESC',
     );
     return HearingSuggestion.group(rows.map(Session.fromMap));
+  }
+
+  Future<List<String>> capacities() async {
+    final db = await _dbHelper.database;
+    final rows = await db.rawQuery(
+      'SELECT client_capacity AS capacity FROM sessions UNION SELECT opponent_capacity AS capacity FROM sessions',
+    );
+    return rows
+        .map((row) => (row['capacity'] as String? ?? '').trim())
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
   }
 
   // إضافة جلسة جديدة

@@ -61,11 +61,8 @@ class _PreviousHearingLookupState extends State<PreviousHearingLookup>
   Future<void> _lookup() async {
     final number = widget.number;
     final year = widget.year;
-    final parsedYear = int.tryParse(_normalized(year));
     if (_normalized(number).isEmpty ||
-        parsedYear == null ||
-        parsedYear < 1800 ||
-        parsedYear > 2200) {
+        !RegExp(r'^\d{1,4}\s*ق?$').hasMatch(_normalized(year))) {
       setState(() => _error = 'أدخل رقم الدعوى وسنة صحيحة لاسترجاع البيانات.');
       return;
     }

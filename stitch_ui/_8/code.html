@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>الجلسات اليومية - المحامي الذكي</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Cairo & Tajawal -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&amp;family=Tajawal:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Custom Config -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f4f6f4',
+              100: '#e3e8e3',
+              200: '#c5d1c6',
+              500: '#4a6b4e',
+              700: '#2b442e',
+              800: '#203423',
+              900: '#18271a',
+              gold: '#c5a059',
+              goldLight: '#dfc285',
+              accent: '#d97736'
+            }
+          },
+          fontFamily: {
+            cairo: ['Cairo', 'sans-serif'],
+            tajawal: ['Tajawal', 'sans-serif']
+          },
+          boxShadow: {
+            'card': '0 4px 20px -2px rgba(24, 39, 26, 0.06), 0 2px 6px -1px rgba(24, 39, 26, 0.04)',
+            'floating': '0 10px 25px -5px rgba(32, 52, 35, 0.4)'
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles: Utilities and Base -->
+<style data-purpose="base-styling">
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #f7f9f7;
+      color: #1a221b;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .custom-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-[#f5f7f5] text-slate-800 antialiased flex flex-col justify-between min-h-screen pb-24">
+<!-- BEGIN: MainHeader -->
+<header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-brand-100/70 px-4 pt-3 pb-3" data-purpose="app-bar">
+<div class="max-w-md mx-auto flex items-center justify-between">
+<!-- Settings Action -->
+<button aria-label="الإعدادات" class="w-10 h-10 rounded-xl bg-brand-50 hover:bg-brand-100 flex items-center justify-center text-brand-800 transition active:scale-95 border border-brand-100" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<!-- Screen Title with Olive/Gold Accent -->
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-6 bg-brand-gold rounded-full inline-block"></span>
+<h1 class="text-xl font-bold text-brand-900 tracking-tight">الجلسات اليومية</h1>
+</div>
+<!-- Quick Action / Notification -->
+<button aria-label="الإشعارات" class="w-10 h-10 rounded-xl bg-brand-50 hover:bg-brand-100 flex items-center justify-center text-brand-800 transition active:scale-95 border border-brand-100 relative" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="w-2 h-2 bg-brand-accent rounded-full absolute top-2.5 left-2.5 ring-2 ring-white"></span>
+</button>
+</div>
+</header>
+<!-- END: MainHeader -->
+<main class="max-w-md mx-auto px-4 w-full flex-1 pt-3 space-y-4">
+<!-- BEGIN: QuickNavigationTabs -->
+<!-- Top Segmented Navigation Pills -->
+<nav aria-label="تبويبات التطبيق" class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar text-sm font-semibold">
+<button class="flex-1 py-2 px-3.5 bg-brand-800 text-white rounded-xl shadow-sm flex items-center justify-center gap-1.5 whitespace-nowrap transition" type="button">
+<svg class="w-4 h-4 text-brand-goldLight" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fill-rule="evenodd"></path>
+</svg>
+<span>الجلسات اليومية</span>
+</button>
+<button class="py-2 px-3.5 bg-white border border-brand-200/80 text-brand-800 hover:bg-brand-50 rounded-xl whitespace-nowrap transition font-medium" type="button">
+        البيانات الشخصية
+      </button>
+<button class="py-2 px-3.5 bg-white border border-brand-200/80 text-brand-800 hover:bg-brand-50 rounded-xl whitespace-nowrap transition font-medium" type="button">
+        التوكيلات
+      </button>
+</nav>
+<!-- END: QuickNavigationTabs -->
+<!-- BEGIN: DualDateCard -->
+<!-- Elegantly Designed Hijri & Gregorian Date Card with Day Navigation -->
+<section class="bg-white rounded-2xl p-4 shadow-card border border-brand-100" data-purpose="date-dashboard">
+<!-- Calendar Navigation Bar -->
+<div class="flex items-center justify-between border-b border-brand-50 pb-3 mb-3.5">
+<button aria-label="اليوم التالي" class="p-1.5 rounded-lg text-brand-700 hover:bg-brand-50 transition active:scale-95" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<div class="flex items-center gap-1.5 text-brand-900 font-bold text-sm">
+<svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>جدول الجلسات اليومية</span>
+</div>
+<button aria-label="اليوم السابق" class="p-1.5 rounded-lg text-brand-700 hover:bg-brand-50 transition active:scale-95" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+<!-- Main Dates Presentation -->
+<div class="grid grid-cols-12 gap-2 items-center">
+<!-- Gregorian Side Box -->
+<div class="col-span-3 bg-brand-50/70 border border-brand-100 rounded-xl p-2.5 text-center flex flex-col justify-center">
+<span class="text-[11px] font-medium text-slate-500 mb-0.5">ميلادي</span>
+<span class="text-2xl font-black text-brand-900 leading-tight">٢٦</span>
+<span class="text-xs font-semibold text-brand-700 mt-0.5">أكتوبر</span>
+</div>
+<!-- Center: Weekday & Years with Law Emblem -->
+<div class="col-span-6 text-center px-1">
+<div class="inline-flex items-center justify-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-100/60 text-brand-800 text-[11px] font-semibold mb-1">
+<span class="w-1.5 h-1.5 rounded-full bg-brand-gold"></span>
+            يوم العمل الرسمي
+          </div>
+<h2 class="text-3xl font-extrabold text-brand-900 tracking-tight">الاثنين</h2>
+<div class="flex items-center justify-center gap-2 mt-1 text-xs font-bold text-brand-700">
+<span>١٤٤٨ هـ</span>
+<!-- Scales / Gavel Icon -->
+<span class="text-brand-gold">
+<svg class="w-3.5 h-3.5" fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 2a1 1 0 0 1 1 1v2.07a8.003 8.003 0 0 1 6.92 6.012l.08.418H22a1 1 0 1 1 0 2h-1.07A8.003 8.003 0 0 1 14 20.43V22a1 1 0 1 1-2 0v-1.57A8.003 8.003 0 0 1 3.07 13.5H2a1 1 0 1 1 0-2h1.928a8.002 8.002 0 0 1 7.072-6.43V3a1 1 0 0 1 1-1zm0 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"></path>
+</svg>
+</span>
+<span>٢٠٢٦ م</span>
+</div>
+</div>
+<!-- Hijri Side Box -->
+<div class="col-span-3 bg-brand-800 text-white rounded-xl p-2.5 text-center flex flex-col justify-center shadow-sm">
+<span class="text-[11px] font-medium text-brand-200 mb-0.5">هجري</span>
+<span class="text-2xl font-black text-white leading-tight">١٤</span>
+<span class="text-xs font-semibold text-brand-goldLight mt-0.5 leading-snug">جمادى الأولى</span>
+</div>
+</div>
+</section>
+<!-- END: DualDateCard -->
+<!-- BEGIN: SearchAndFilterBar -->
+<!-- Action controls: Quick search, Date Picker, Export, and Hearing counter -->
+<section class="space-y-2.5" data-purpose="search-and-controls">
+<div class="flex items-center gap-2">
+<!-- Search Input -->
+<div class="relative flex-1">
+<input class="w-full pl-9 pr-9 py-2.5 text-sm bg-white border border-brand-200/90 rounded-xl focus:ring-2 focus:ring-brand-700/20 focus:border-brand-700 placeholder-slate-400 font-medium transition" placeholder="بحث في كل الجلسات..." type="text"/>
+<!-- Search Glass Icon -->
+<div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-brand-700">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"></path>
+</svg>
+</div>
+<!-- Clear/Filter Trigger inside search -->
+<button aria-label="تصفية" class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400 hover:text-brand-800" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+<!-- Today Selector Button -->
+<button class="py-2.5 px-3 bg-white border border-brand-200 hover:bg-brand-50 text-brand-800 font-bold text-xs rounded-xl flex items-center gap-1.5 transition whitespace-nowrap shadow-sm" type="button">
+<svg class="w-4 h-4 text-brand-700" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>اليوم</span>
+</button>
+<!-- Share / Export Button -->
+<button aria-label="مشاركة أو تصدير الجدول" class="p-2.5 bg-white border border-brand-200 hover:bg-brand-50 text-brand-800 rounded-xl transition shadow-sm active:scale-95" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+<!-- Hearings Count & Status Indicator -->
+<div class="flex items-center justify-between px-1 text-xs">
+<div class="flex items-center gap-1.5 text-slate-500 font-medium">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span>إجمالي القضايا المجدولة لهذا اليوم</span>
+</div>
+<div class="font-bold text-brand-800 bg-brand-100/70 border border-brand-200/50 px-2 py-0.5 rounded-md">
+          الجلسات: <span class="text-brand-900 font-extrabold text-sm">١</span>
+</div>
+</div>
+</section>
+<!-- END: SearchAndFilterBar -->
+<!-- BEGIN: HearingsTableSection -->
+<!-- Hearings Structured Cards / Modern Table View -->
+<section class="space-y-3" data-purpose="daily-hearings-list">
+<!-- Table Header Bar -->
+<div class="grid grid-cols-12 bg-brand-800 text-brand-50 text-xs font-semibold py-2 px-3 rounded-xl shadow-sm">
+<div class="col-span-5 text-right flex items-center gap-1">
+<svg class="w-3.5 h-3.5 text-brand-goldLight" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>المحكمة / الدائرة</span>
+</div>
+<div class="col-span-4 text-right">الموكل / الخصم</div>
+<div class="col-span-3 text-left">القرار / السابق</div>
+</div>
+<!-- Hearing Card Item 1 (From Original Data) -->
+<article class="bg-white rounded-2xl border border-brand-100 p-3.5 shadow-card hover:border-brand-500/30 transition-all duration-200 relative overflow-hidden" data-purpose="hearing-card">
+<!-- Colored status edge bar -->
+<div class="absolute top-0 right-0 bottom-0 w-1 bg-amber-500"></div>
+<div class="grid grid-cols-12 gap-2 items-start">
+<!-- Column 1: Court & Case Info -->
+<div class="col-span-5 pr-1.5 space-y-1">
+<h3 class="font-bold text-brand-900 text-sm leading-snug flex items-center gap-1">
+              محكمة شمال
+            </h3>
+<div class="inline-block bg-brand-50 text-brand-800 text-[11px] font-semibold px-2 py-0.5 rounded-md border border-brand-100">
+              ٦ مدني
+            </div>
+<p class="text-xs text-slate-500 font-medium">
+              رقم <span class="text-slate-800 font-bold">٣٤٤</span> لسنة <span class="text-slate-800 font-bold">٢٠٢٦</span>
+</p>
+</div>
+<!-- Column 2: Parties Information -->
+<div class="col-span-4 space-y-1.5 border-r border-slate-100 pr-2">
+<div class="text-xs">
+<span class="text-slate-400 text-[10px] block font-medium">الموكل</span>
+<span class="font-bold text-slate-800 block text-xs truncate">محمد هنيدي</span>
+</div>
+<div class="text-xs">
+<span class="text-slate-400 text-[10px] block font-medium">الخصم</span>
+<span class="font-medium text-slate-600 block text-xs truncate">محمود الدغار</span>
+</div>
+</div>
+<!-- Column 3: Decision & Previous Hearing Date -->
+<div class="col-span-3 text-left flex flex-col justify-between items-end h-full">
+<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
+              تأجيل
+            </span>
+<div class="mt-2 text-left">
+<span class="text-[10px] text-slate-400 block font-medium">سابق الجلسة:</span>
+<span class="text-[11px] font-semibold text-slate-600 dir-ltr block">
+                ٢٠٢٤ / ١١ / ٣٠
+              </span>
+</div>
+</div>
+</div>
+<!-- Quick Action Footer for this Record -->
+<div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+<div class="flex items-center gap-1 text-[11px] text-brand-700 font-medium">
+<svg class="w-3.5 h-3.5 text-brand-gold" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>الرول التقريبي: ٠٩:٣٠ ص</span>
+</div>
+<div class="flex items-center gap-1">
+<button aria-label="عرض تفاصيل الدعوى" class="text-xs font-bold text-brand-700 hover:text-brand-900 px-2 py-1 rounded hover:bg-brand-50 transition" type="button">
+              التفاصيل ←
+            </button>
+</div>
+</div>
+</article>
+<!-- Empty State / Helpful Legal Reminder Hint -->
+<div class="text-center py-4 px-3 rounded-xl border border-dashed border-brand-200 bg-brand-50/40">
+<p class="text-xs text-brand-700 font-medium">لا توجد جلسات أخرى مسجلة لتاريخ اليوم.</p>
+<p class="text-[11px] text-slate-400 mt-0.5">اضغط على زر الإضافة (+) أدناه لإدراج جلسة جديدة أو تعديل الرول.</p>
+</div>
+</section>
+<!-- END: HearingsTableSection -->
+</main>
+<!-- BEGIN: FloatingActionButton -->
+<!-- FAB to Add New Hearing -->
+<aside class="fixed bottom-20 left-5 z-40" data-purpose="floating-action-button">
+<button aria-label="إضافة جلسة جديدة" class="flex items-center gap-2 bg-brand-800 hover:bg-brand-900 active:scale-95 text-white pl-4 pr-3.5 py-3 rounded-full shadow-floating transition-all duration-300 border border-brand-700 group focus:outline-none focus:ring-4 focus:ring-brand-500/30" type="button">
+<div class="w-6 h-6 rounded-full bg-brand-gold/20 flex items-center justify-center text-brand-goldLight">
+<svg class="w-5 h-5 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<span class="text-sm font-bold">جلسة جديدة</span>
+</button>
+</aside>
+<!-- END: FloatingActionButton -->
+<!-- BEGIN: BottomNavigationBar -->
+<!-- Bottom Tab Bar (iOS / Android Navigation bar style) -->
+<footer class="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-brand-100 z-30 px-3 py-1.5" data-purpose="bottom-navigation">
+<div class="max-w-md mx-auto grid grid-cols-4 items-center">
+<!-- Tab 1: Hearings (Active) -->
+<button class="flex flex-col items-center justify-center py-1 text-brand-800" type="button">
+<svg class="w-5 h-5 mb-0.5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" fill-rule="evenodd"></path>
+</svg>
+<span class="text-[10px] font-bold">الجلسات</span>
+<span class="w-1.5 h-1 bg-brand-gold rounded-full mt-0.5"></span>
+</button>
+<!-- Tab 2: Cases -->
+<button class="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-brand-800 transition" type="button">
+<svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[10px] font-medium">القضايا</span>
+</button>
+<!-- Tab 3: Clients -->
+<button class="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-brand-800 transition" type="button">
+<svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[10px] font-medium">الموكلين</span>
+</button>
+<!-- Tab 4: More / Office -->
+<button class="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-brand-800 transition" type="button">
+<svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[10px] font-medium">المزيد</span>
+</button>
+</div>
+</footer>
+<!-- END: BottomNavigationBar -->
+</body></html>

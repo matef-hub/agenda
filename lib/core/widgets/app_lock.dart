@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../security/secret_vault.dart';
+import '../utils/arabic_format.dart';
 import 'arabic_text.dart';
 
 class AppLock extends StatefulWidget {
@@ -81,7 +82,11 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
     });
     final generation = _generation;
     try {
-      final correct = await PasswordCipher.unlock(_password.text);
+      final input = _password.text;
+      final normalized = ArabicFormat.normalize(input);
+      final correct =
+          await PasswordCipher.unlock(input) ||
+          (normalized != input && await PasswordCipher.unlock(normalized));
       if (!mounted || generation != _generation) return;
       if (correct) {
         _password.clear();

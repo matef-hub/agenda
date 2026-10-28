@@ -1,0 +1,181 @@
+<!DOCTYPE html><html dir="rtl" lang="ar"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+<title>إضافة عمل إداري - نظام إدارة القضايا</title>
+<!-- Tailwind CSS CDN with Forms & Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Cairo & IBM Plex Sans Arabic -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Custom Tailwind Config -->
+<script data-purpose="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#1e3f2e',
+              dark: '#142c20',
+              light: '#2d5c43',
+              subtle: '#eaf4ee',
+              tint: '#f3f8f5',
+              border: '#d4e3d9'
+            },
+            surface: {
+              bg: '#f8faf9',
+              card: '#ffffff'
+            }
+          },
+          fontFamily: {
+            sans: ['"IBM Plex Sans Arabic"', 'Cairo', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-scrollbars-and-reset">
+    /* Custom hidden scrollbar for ultra-clean mobile appearance */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    body {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-gray-800 font-sans min-h-screen flex justify-center items-end sm:items-center p-0 sm:p-4 overflow-hidden antialiased">
+<!-- BEGIN: BlurredBackgroundScreen -->
+<!-- Mimics the "الأعمال الإدارية" underlying screen as shown in SCREEN_3, blurred behind backdrop -->
+<div aria-hidden="true" class="fixed inset-0 w-full h-full bg-[#f6f8f7] overflow-hidden filter blur-[4px] opacity-45 pointer-events-none scale-98">
+<!-- Top Mobile Header Bar -->
+<header class="p-4 flex items-center justify-between border-b border-gray-200 bg-white">
+<div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-5 bg-[#c89226] rounded-full"></span>
+<h1 class="text-xl font-bold text-[#1e3f2e]">الأعمال الإدارية</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</header>
+<!-- Background Simulated Content -->
+<div class="p-4 space-y-4">
+<div class="flex gap-2">
+<span class="px-4 py-2 bg-[#1e3f2e] text-white rounded-full text-xs font-semibold">الأعمال الإدارية ✓</span>
+<span class="px-4 py-2 bg-white rounded-full text-xs text-gray-600 border">المحضرين</span>
+<span class="px-4 py-2 bg-white rounded-full text-xs text-gray-600 border">التوكيلات</span>
+</div>
+<div class="h-28 bg-white rounded-2xl border border-gray-200 shadow-sm p-4"></div>
+<div class="h-32 bg-white rounded-2xl border border-gray-200 shadow-sm p-4"></div>
+<div class="h-32 bg-white rounded-2xl border border-gray-200 shadow-sm p-4"></div>
+</div>
+</div>
+<!-- END: BlurredBackgroundScreen -->
+<!-- BEGIN: ModalBackdrop -->
+<div aria-hidden="true" class="fixed inset-0 bg-black/50 backdrop-blur-[3px] transition-opacity z-40"></div>
+<!-- END: ModalBackdrop -->
+<!-- BEGIN: AdministrativeTaskModalSheet -->
+<main aria-labelledby="modal-title" aria-modal="true" class="relative z-50 w-full max-w-lg bg-white rounded-t-[32px] sm:rounded-3xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden border border-gray-100 animate-in slide-in-from-bottom duration-300" role="dialog">
+<!-- BEGIN: ModalHeader -->
+<header class="pt-3 px-5 pb-3.5 border-b border-gray-100 flex-shrink-0 bg-white sticky top-0 z-10" data-purpose="sheet-header">
+<!-- Drag Handle for Mobile Intuition -->
+<div class="flex justify-center mb-2.5">
+<div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+</div>
+<div class="flex items-center justify-between">
+<!-- Close Button (Left in RTL is logical close position) -->
+<button aria-label="إغلاق النافذة" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center transition-colors" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+</svg>
+</button>
+<!-- Title and Subtitle -->
+<div class="text-right flex-1 pr-3 pl-2">
+<h2 class="text-lg font-bold text-gray-900 leading-tight" id="modal-title">إضافة عمل إداري</h2>
+<p class="text-xs text-gray-500 mt-0.5 font-normal">تسجيل ومتابعة المهام الإدارية بالمحاكم والجهات الرسمية</p>
+</div>
+<!-- Distinctive Task Icon Badge -->
+<div class="w-10 h-10 rounded-2xl bg-[#ecf6ee] text-[#1e3f2e] border border-[#d2ddd4] flex items-center justify-center flex-shrink-0 shadow-sm">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+</header>
+<!-- END: ModalHeader -->
+<!-- BEGIN: FormBody -->
+<div class="p-5 overflow-y-auto no-scrollbar space-y-4" data-purpose="form-fields-container"><!-- Field 1: Title (العنوان) -->
+<div class="space-y-1.5">
+  <label class="block text-xs font-bold text-gray-800">
+    العنوان <span class="text-red-500">*</span>
+  </label>
+  <div class="relative">
+    <input class="w-full h-11 pr-10 pl-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1e3f2e]/20 focus:border-[#1e3f2e] transition" placeholder="مثال: استخراج شهادة رسمية من قلم الجدول" type="text" value="استخراج شهادة رسمية من قلم الجدول">
+    <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+      </svg>
+    </span>
+  </div>
+</div>
+
+<!-- Field 2: Details (التفاصيل) -->
+<div class="space-y-1.5">
+  <label class="block text-xs font-bold text-gray-800">
+    التفاصيل <span class="text-red-500">*</span>
+  </label>
+  <textarea class="w-full p-3 rounded-xl border border-gray-200 text-xs font-normal text-gray-800 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-[#1e3f2e]/20 focus:border-[#1e3f2e] transition leading-relaxed" placeholder="سجل تفاصيل وملاحظات العمل الإداري..." rows="4"></textarea>
+</div>
+
+<!-- Field 3: Work Date (موعد العمل) -->
+<div class="space-y-1.5">
+  <label class="block text-xs font-bold text-gray-800">
+    موعد العمل <span class="text-red-500">*</span>
+  </label>
+  <div class="relative">
+    <div class="w-full h-11 px-3 rounded-xl border border-gray-200 flex items-center justify-between bg-white text-sm font-medium text-gray-800">
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+        </svg>
+        <span class="tracking-wide">2026 / 10 / 26</span>
+      </div>
+      <button class="text-gray-400 hover:text-gray-600" type="button">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+      </button>
+    </div>
+  </div>
+</div></div>
+<!-- END: FormBody -->
+<!-- BEGIN: ModalActionFooter -->
+<footer class="p-4 bg-white border-t border-gray-100 flex-shrink-0" data-purpose="modal-actions-toolbar">
+<div class="flex items-center gap-3">
+<!-- Primary Submit Button -->
+<button class="flex-1 h-12 bg-[#1e3f2e] hover:bg-[#162f22] active:scale-[0.99] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-[#1e3f2e]/20 transition-all" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+</svg>
+<span class="">حفظ العمل الإداري</span>
+</button>
+<!-- Secondary Cancel Button -->
+<button class="w-24 h-12 bg-white hover:bg-gray-50 active:scale-[0.99] border border-gray-300 rounded-xl font-semibold text-sm text-gray-700 flex items-center justify-center transition-all" type="button">
+          إلغاء
+        </button>
+</div>
+<!-- iOS Home Indicator Spacing -->
+<div class="h-2 w-32 bg-gray-200 rounded-full mx-auto mt-3 hidden sm:hidden"></div>
+</footer>
+<!-- END: ModalActionFooter -->
+</main>
+<!-- END: AdministrativeTaskModalSheet -->
+
+
+</body></html>

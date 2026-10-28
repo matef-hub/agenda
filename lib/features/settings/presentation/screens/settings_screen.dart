@@ -15,16 +15,22 @@ Future<String?> askPassword(
   BuildContext context, {
   required String title,
   bool confirm = false,
+  bool pin = false,
 }) => showDialog<String>(
   context: context,
   barrierDismissible: false,
-  builder: (_) => _PasswordDialog(title: title, confirm: confirm),
+  builder: (_) => _PasswordDialog(title: title, confirm: confirm, pin: pin),
 );
 
 class _PasswordDialog extends StatefulWidget {
   final String title;
   final bool confirm;
-  const _PasswordDialog({required this.title, required this.confirm});
+  final bool pin;
+  const _PasswordDialog({
+    required this.title,
+    required this.confirm,
+    required this.pin,
+  });
   @override
   State<_PasswordDialog> createState() => _PasswordDialogState();
 }
@@ -54,8 +60,16 @@ class _PasswordDialogState extends State<_PasswordDialog> {
               obscureText: true,
               autofocus: true,
               autocorrect: false,
+              keyboardType: widget.pin
+                  ? TextInputType.number
+                  : TextInputType.text,
               decoration: const InputDecoration(labelText: 'كلمة المرور'),
-              validator: (v) => (v?.length ?? 0) < (widget.confirm ? 10 : 1)
+              validator: (v) =>
+                  widget.pin &&
+                      !RegExp(r'^[0-9]{4}$')
+                          .hasMatch(ArabicFormat.normalize(v ?? ''))
+                  ? 'أدخل رمزًا من ٤ أرقام'
+                  : (v?.length ?? 0) < (widget.confirm && !widget.pin ? 10 : 1)
                   ? 'أدخل كلمة مرور${widget.confirm ? ' من ١٠ أحرف على الأقل' : ''}'
                   : null,
             ),
@@ -65,11 +79,17 @@ class _PasswordDialogState extends State<_PasswordDialog> {
                 controller: _confirmation,
                 obscureText: true,
                 autocorrect: false,
+                keyboardType: widget.pin
+                    ? TextInputType.number
+                    : TextInputType.text,
                 decoration: const InputDecoration(
                   labelText: 'تأكيد كلمة المرور',
                 ),
                 validator: (v) =>
-                    v != _password.text ? 'كلمتا المرور غير متطابقتين' : null,
+                    ArabicFormat.normalize(v ?? '') !=
+                        ArabicFormat.normalize(_password.text)
+                    ? 'كلمتا المرور غير متطابقتين'
+                    : null,
               ),
               const SizedBox(height: 8),
               const ArabicText(
@@ -89,7 +109,12 @@ class _PasswordDialogState extends State<_PasswordDialog> {
       FilledButton(
         onPressed: () {
           if (_form.currentState!.validate()) {
-            Navigator.pop(context, _password.text);
+            Navigator.pop(
+              context,
+              widget.pin
+                  ? ArabicFormat.normalize(_password.text)
+                  : _password.text,
+            );
           }
         },
         child: const ArabicText('متابعة'),
@@ -292,6 +317,7 @@ class _SettingsToolsScreenState extends State<_SettingsToolsScreen> {
       context,
       title: enable ? 'تفعيل قفل التطبيق' : 'كلمة المرور الحالية',
       confirm: enable,
+      pin: enable,
     );
     if (password == null) return;
     await _run(() async {

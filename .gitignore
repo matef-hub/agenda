@@ -51,5 +51,15 @@ app.*.map.json
 /android/key.properties
 *.jks
 *.keystore
-*.log
 _edit_task.py
+
+# Local workspace inventories and backups
+/tree.txt
+*.agenda
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Missing Stitch preview placeholder
+/stitch_ui/_3/screen.png

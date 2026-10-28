@@ -6,7 +6,7 @@ class Session {
   final String courtName; // اسم المحكمة
   final String circuit; // الدائرة
   final String caseNumber; // رقم الدعوى
-  final int caseYear; // سنة الدعوى
+  final Object caseYear; // سنة الدعوى أو السنة القضائية، مثل 70ق
   final String clientName; // اسم الموكل
   final String clientCapacity; // صفة الموكل (مدعي، مدعى عليه، إلخ)
   final String opponentName; // اسم الخصم
@@ -69,7 +69,7 @@ class Session {
       courtName: map['court_name'] as String? ?? '',
       circuit: map['circuit'] as String? ?? '',
       caseNumber: map['case_number'] as String? ?? '',
-      caseYear: map['case_year'] as int? ?? DateTime.now().year,
+      caseYear: map['case_year'] ?? DateTime.now().year,
       clientName: map['client_name'] as String? ?? '',
       clientCapacity: map['client_capacity'] as String? ?? '',
       opponentName: map['opponent_name'] as String? ?? '',
@@ -96,7 +96,7 @@ class Session {
     String? courtName,
     String? circuit,
     String? caseNumber,
-    int? caseYear,
+    Object? caseYear,
     String? clientName,
     String? clientCapacity,
     String? opponentName,

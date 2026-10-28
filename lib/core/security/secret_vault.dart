@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../utils/arabic_format.dart';
 
 class SecretVault {
   static const _storage = FlutterSecureStorage();
@@ -94,6 +95,10 @@ class PasswordCipher {
     if (password.length < 10) {
       throw const FormatException('استخدم كلمة مرور من عشرة أحرف على الأقل');
     }
+    return _encrypt(text, password);
+  }
+
+  static Future<String> _encrypt(String text, String password) async {
     final random = Random.secure();
     final salt = List<int>.generate(16, (_) => random.nextInt(256));
     final box = await _cipher.encrypt(
@@ -130,18 +135,29 @@ class PasswordCipher {
 
   static Future<bool> hasLock() async =>
       await SecretVault._storage.read(key: 'agenda_lock_v1') != null;
-  static Future<void> setLock(String password) async =>
-      SecretVault._storage.write(
-        key: 'agenda_lock_v1',
-        value: await encrypt('agenda-unlock', password),
-      );
+  static Future<void> setLock(String password) async {
+    if (!RegExp(r'^[0-9]{4}$').hasMatch(password)) {
+      throw const FormatException('يجب أن يتكون الرمز من أربعة أرقام');
+    }
+    await SecretVault._storage.write(
+      key: 'agenda_lock_v1',
+      value: await _encrypt('agenda-unlock', password),
+    );
+  }
+
   static Future<bool> unlock(String password) async {
     final value = await SecretVault._storage.read(key: 'agenda_lock_v1');
     if (value == null) return true;
     try {
       return await decrypt(value, password) == 'agenda-unlock';
     } catch (_) {
-      return false;
+      final normalized = ArabicFormat.normalize(password);
+      if (normalized == password) return false;
+      try {
+        return await decrypt(value, normalized) == 'agenda-unlock';
+      } catch (_) {
+        return false;
+      }
     }
   }
 

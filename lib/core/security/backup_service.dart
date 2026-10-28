@@ -74,7 +74,10 @@ class BackupService {
           }
           if (value != null &&
               (entry.value['type'] == 'INTEGER'
-                  ? value is! int
+                  ? value is! int &&
+                        !(table == 'sessions' &&
+                            entry.key == 'case_year' &&
+                            value is String)
                   : value is! String)) {
             throw const FormatException('نوع بيانات غير صالح');
           }

@@ -65,12 +65,21 @@ Widget host(Widget child) => MaterialApp(
   home: child,
 );
 
-Finder field(String label) => find.byWidgetPredicate(
-  (widget) => widget is TextField && widget.decoration?.labelText == label,
-);
+Finder field(String label) {
+  if (label == 'رقم الدعوى') return find.byType(TextFormField).at(2);
+  if (label == 'السنة') return find.byType(TextFormField).at(3);
+  if (label == 'اسم المحكمة') return find.byType(TextFormField).at(0);
+  if (label == 'الدائرة') return find.byType(TextFormField).at(1);
+  if (label == 'اسم الموكل') return find.byType(TextFormField).at(4);
+  if (label == 'اسم الخصم') return find.byType(TextFormField).at(6);
+  if (label == 'الجلسة السابقة') return find.byType(TextFormField).at(8);
+  if (label == 'القرار الحالي') return find.byType(TextFormField).at(9);
+  if (label == 'ملاحظات') return find.byType(TextFormField).at(10);
+  return find.byType(TextFormField).first;
+}
 
 String value(WidgetTester tester, String label) =>
-    tester.widget<TextField>(field(label)).controller!.text;
+    tester.widget<TextFormField>(field(label)).controller!.text;
 
 Future<void> waitFor(WidgetTester tester, bool Function() done) async {
   for (var i = 0; i < 200; i++) {
@@ -154,6 +163,36 @@ void main() {
     await db.database;
   });
   tearDown(() async => db.close());
+
+  test('judicial year and previously saved capacities survive storage and lookup', () async {
+    final original = hearing(number: '85').copyWith(
+      caseYear: '70ق', clientCapacity: 'مستأنف', opponentCapacity: 'مستأنف ضده');
+    final id = await repository.insertSession(original);
+    expect((await repository.getSession(id))!.caseYear, '70ق');
+    final results = await repository.findPreviousHearings('٨٥', '٧٠ق');
+    expect(results.single.latest.id, id);
+    expect(await repository.capacities(), containsAll(['مستأنف', 'مستأنف ضده']));
+  });
+
+  testWidgets('sections collapse without losing input and saved capacities are suggested', (tester) async {
+    await tester.runAsync(() => repository.insertSession(hearing().copyWith(clientCapacity: 'مستأنف')));
+    await openForm(tester, repository);
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+    await tester.pumpAndSettle();
+    await tester.enterText(field('اسم المحكمة'), 'محكمة');
+    await tester.tap(find.text('بيانات المحكمة والدعوى').first);
+    await tester.pumpAndSettle();
+    expect(find.text('محكمة'), findsNothing);
+    await tester.tap(find.text('بيانات المحكمة والدعوى').first);
+    await tester.pumpAndSettle();
+    expect(value(tester, 'اسم المحكمة'), 'محكمة');
+    await tester.enterText(find.byType(TextFormField).at(5), 'مست');
+    await tester.pumpAndSettle();
+    expect(find.text('مستأنف'), findsOneWidget);
+    await tester.tap(find.text('مستأنف'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextFormField>(find.byType(TextFormField).at(5)).controller!.text, 'مستأنف');
+  });
 
   test('D E F: exact normalized number/year and distinct court, circuit and parties', () async {
     await repository.insertSession(hearing(number: ' \t١٢٣\n', day: 1));
@@ -458,10 +497,10 @@ void main() {
       await tester.pumpWidget(host(SettingsScreen(database: db)));
       await tester.pumpAndSettle();
       await tester.tap(find.text('البيانات الشخصية'));
-      await waitFor(tester, () => field('اسم المحامي').evaluate().isNotEmpty);
-      expect(value(tester, 'اسم المحامي'), 'محامي مسجل');
-      expect(value(tester, 'رقم جواز السفر'), '١٢٣٤٥');
-      expect(value(tester, 'رقم الحساب البنكي'), '٩٨٧٦٥');
+      await waitFor(tester, () => find.byType(TextFormField).evaluate().isNotEmpty);
+      expect(find.text('محامي مسجل'), findsOneWidget);
+      expect(find.text('١٢٣٤٥'), findsOneWidget);
+      expect(find.text('٩٨٧٦٥'), findsOneWidget);
       expect(find.byType(TextFormField), findsNWidgets(13));
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();

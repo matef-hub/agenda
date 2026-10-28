@@ -215,7 +215,11 @@ class _RecordTableScreenState extends State<RecordTableScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: ArabicText(widget.title),
+      title: ArabicText(widget.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+      backgroundColor: Colors.white,
+      foregroundColor: AppColors.brand900,
+      elevation: 0,
+      scrolledUnderElevation: 2,
       actions: [
         IconButton(
           tooltip: _ascending ? 'الأحدث أولاً' : 'ترتيب بالاسم',
@@ -223,57 +227,74 @@ class _RecordTableScreenState extends State<RecordTableScreen> {
             setState(() => _ascending = !_ascending);
             _load();
           },
-          icon: const Icon(Icons.sort_by_alpha),
+          icon: Icon(_ascending ? Icons.sort_by_alpha : Icons.schedule),
         ),
       ],
     ),
+    backgroundColor: AppColors.paperCream,
     body: Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-          child: TextField(
-            controller: _search,
-            inputFormatters: const [ArabicDigitsFormatter()],
-            decoration: const InputDecoration(
-              hintText: 'بحث بالاسم أو الرقم أو التفاصيل',
-              prefixIcon: Icon(Icons.search),
-            ),
-            onChanged: (_) {
-              _debounce?.cancel();
-              _debounce = Timer(const Duration(milliseconds: 250), _load);
-            },
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(bottom: BorderSide(color: AppColors.brand50)),
           ),
-        ),
-        if (widget.completion)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Wrap(
-              spacing: 8,
-              children: [
-                DropdownButton<int>(
-                  value: _completed ?? -1,
-                  items: const [
-                    DropdownMenuItem(
-                      value: -1,
-                      child: ArabicText('كل الأعمال'),
-                    ),
-                    DropdownMenuItem(
-                      value: 0,
-                      child: ArabicText('غير المكتمل'),
-                    ),
-                    DropdownMenuItem(value: 1, child: ArabicText('المكتمل')),
-                  ],
-                  onChanged: (value) {
-                    setState(() => _completed = value == -1 ? null : value);
-                    _load();
+          child: Column(
+            children: [
+              Container(
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.paperCream,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.brand100),
+                ),
+                child: TextField(
+                  controller: _search,
+                  inputFormatters: const [ArabicDigitsFormatter()],
+                  style: const TextStyle(fontSize: 14),
+                  decoration: const InputDecoration(
+                    hintText: 'بحث سريع...',
+                    hintStyle: TextStyle(color: Colors.black38, fontSize: 14),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    prefixIcon: Icon(Icons.search, size: 20, color: AppColors.brand700),
+                  ),
+                  onChanged: (_) {
+                    _debounce?.cancel();
+                    _debounce = Timer(const Duration(milliseconds: 250), _load);
                   },
                 ),
-                TextButton.icon(
-                  icon: const Icon(Icons.date_range),
-                  label: ArabicText(
-                    _date == null ? 'كل التواريخ' : ArabicFormat.date(_date!),
+              ),
+        if (widget.completion)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Container(
+                  height: 36,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.brand100)),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: _completed ?? -1,
+                      style: const TextStyle(fontSize: 12, color: AppColors.brand900, fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+                      items: const [
+                        DropdownMenuItem(value: -1, child: ArabicText('كل الأعمال')),
+                        DropdownMenuItem(value: 0, child: ArabicText('غير المكتمل')),
+                        DropdownMenuItem(value: 1, child: ArabicText('المكتمل')),
+                      ],
+                      onChanged: (value) {
+                        setState(() => _completed = value == -1 ? null : value);
+                        _load();
+                      },
+                    ),
                   ),
-                  onPressed: () async {
+                ),
+                InkWell(
+                  onTap: () async {
                     final picked = await showDatePicker(
                       context: context,
                       initialDate: _date ?? DateTime.now(),
@@ -285,19 +306,39 @@ class _RecordTableScreenState extends State<RecordTableScreen> {
                       _load();
                     }
                   },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    height: 36,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.brand100)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.date_range, size: 16, color: AppColors.brand700),
+                        const SizedBox(width: 6),
+                        ArabicText(_date == null ? 'التاريخ' : ArabicFormat.date(_date!), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.brand800)),
+                      ],
+                    ),
+                  ),
                 ),
                 if (_date != null)
                   IconButton(
                     tooltip: 'إلغاء فلتر التاريخ',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    style: IconButton.styleFrom(backgroundColor: AppColors.accentRed.withValues(alpha: 0.1)),
                     onPressed: () {
                       setState(() => _date = null);
                       _load();
                     },
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(Icons.close, size: 16, color: AppColors.accentRed),
                   ),
               ],
             ),
           ),
+            ],
+          ),
+        ),
         if (_loading) const LinearProgressIndicator(),
         Expanded(
           child: _error != null
@@ -323,156 +364,171 @@ class _RecordTableScreenState extends State<RecordTableScreen> {
                         : 'لا توجد نتائج',
                   ),
                 )
-              : Container(
-                  margin: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: AppColors.primaryOlive, width: 2),
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: const BoxDecoration(
-                          color: AppColors.tableHeaderGreen,
-                          border: Border(
-                            bottom: BorderSide(
-                              color: AppColors.primaryOlive,
-                              width: 2,
-                            ),
+              : ListView.builder(
+                  padding: const EdgeInsets.only(top: 8, bottom: 80, left: 16, right: 16),
+                  itemCount: _rows.length + (_more ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == _rows.length) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: TextButton(
+                          onPressed: _loading ? null : () => _load(append: true),
+                          style: TextButton.styleFrom(
+                            backgroundColor: AppColors.surfaceContainerLow,
+                            foregroundColor: AppColors.brand800,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
+                          child: const ArabicText('عرض المزيد', style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
-                        child: Row(
-                          children: [
-                            for (final header in widget.headers)
+                      );
+                    }
+                    final row = _rows[index];
+                    final id = row['id'] as int;
+                    final completed = row['is_completed'] == 1;
+
+                    // Determine card accent color
+                    Color accentColor = AppColors.brand200;
+                    if (widget.completion) {
+                      accentColor = completed ? Colors.green : AppColors.accentOrange;
+                    } else if (row['status'] != null) {
+                      final status = row['status'].toString();
+                      if (status.contains('تم')) {
+                        accentColor = Colors.green;
+                      } else if (status.contains('تعذر') || status.contains('لم')) {
+                        accentColor = AppColors.accentRed;
+                      } else {
+                        accentColor = Colors.blue;
+                      }
+                    }
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.tableBorder),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.brand900.withValues(alpha: 0.04),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: () => _edit(row),
+                        child: IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Container(width: 4, color: accentColor),
                               Expanded(
-                                child: ArabicText(
-                                  header,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          for (int colIdx = 0; colIdx < widget.columns.length; colIdx++)
+                                            Expanded(
+                                              flex: colIdx == 0 ? 4 : (colIdx == 1 ? 4 : 3),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                                decoration: colIdx == 1 ? const BoxDecoration(border: Border(right: BorderSide(color: AppColors.brand50))) : null,
+                                                child: Column(
+                                                  crossAxisAlignment: colIdx == 1 ? CrossAxisAlignment.center : (colIdx == 0 ? CrossAxisAlignment.start : CrossAxisAlignment.end),
+                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                  children: [
+                                                    for (int keyIdx = 0; keyIdx < widget.columns[colIdx].length; keyIdx++)
+                                                      if (widget.columns[colIdx][keyIdx] == 'is_completed')
+                                                        Checkbox(
+                                                          value: completed,
+                                                          activeColor: AppColors.brand800,
+                                                          onChanged: _busyRows.contains(id) ? null : (value) => _change(id, () => _db.update(widget.table, {'is_completed': value == true ? 1 : 0}, id)),
+                                                        )
+                                                      else
+                                                        Padding(
+                                                          padding: EdgeInsets.only(bottom: keyIdx == 0 ? 4 : 0),
+                                                          child: ArabicText(
+                                                            _value(row, widget.columns[colIdx][keyIdx]),
+                                                            textAlign: colIdx == 1 ? TextAlign.center : (colIdx == 0 ? TextAlign.start : TextAlign.end),
+                                                            maxLines: 2,
+                                                            overflow: TextOverflow.ellipsis,
+                                                            style: TextStyle(
+                                                              fontSize: keyIdx == 0 ? 13 : 11,
+                                                              fontWeight: keyIdx == 0 ? FontWeight.bold : FontWeight.w600,
+                                                              color: completed ? AppColors.textLight : (keyIdx == 0 ? AppColors.brand900 : AppColors.textLight),
+                                                              decoration: completed ? TextDecoration.lineThrough : null,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      const Padding(
+                                        padding: EdgeInsets.only(top: 8, bottom: 8),
+                                        child: Divider(height: 1, color: AppColors.brand50),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          InkWell(
+                                            onTap: () => _edit(row),
+                                            child: Row(
+                                              children: const [
+                                                ArabicText('تعديل التفاصيل', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.brand800)),
+                                                SizedBox(width: 4),
+                                                Icon(Icons.edit_document, size: 14, color: AppColors.brand800),
+                                              ],
+                                            ),
+                                          ),
+                                          Row(
+                                            children: [
+                                              IconButton(
+                                                tooltip: 'حذف',
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                                onPressed: _busyRows.contains(id) ? null : () => _delete(row),
+                                                icon: Container(
+                                                  padding: const EdgeInsets.all(4),
+                                                  decoration: BoxDecoration(color: AppColors.accentRed.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                                                  child: const Icon(Icons.delete_outline, color: AppColors.accentRed, size: 16),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      )
+                                    ],
                                   ),
                                 ),
                               ),
-                            const SizedBox(width: 44),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: ListView.separated(
-                          itemCount: _rows.length + (_more ? 1 : 0),
-                          separatorBuilder: (_, _) => const Divider(
-                            height: 1,
-                            color: AppColors.tableBorder,
+                            ],
                           ),
-                          itemBuilder: (context, index) {
-                            if (index == _rows.length) {
-                              return TextButton(
-                                onPressed: _loading
-                                    ? null
-                                    : () => _load(append: true),
-                                child: const ArabicText('عرض المزيد'),
-                              );
-                            }
-                            final row = _rows[index];
-                            final id = row['id'] as int;
-                            final completed = row['is_completed'] == 1;
-                            return InkWell(
-                              onTap: () => _edit(row),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 10,
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    for (final column in widget.columns)
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 5,
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              for (final key in column)
-                                                if (key == 'is_completed')
-                                                  Checkbox(
-                                                    value: completed,
-                                                    onChanged:
-                                                        _busyRows.contains(id)
-                                                        ? null
-                                                        : (value) => _change(
-                                                            id,
-                                                            () => _db.update(
-                                                              widget.table,
-                                                              {
-                                                                'is_completed':
-                                                                    value ==
-                                                                        true
-                                                                    ? 1
-                                                                    : 0,
-                                                              },
-                                                              id,
-                                                            ),
-                                                          ),
-                                                  )
-                                                else
-                                                  ArabicText(
-                                                    _value(row, key),
-                                                    maxLines: 3,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: completed
-                                                          ? AppColors.textLight
-                                                          : AppColors.textDark,
-                                                      decoration: completed
-                                                          ? TextDecoration
-                                                                .lineThrough
-                                                          : null,
-                                                    ),
-                                                  ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    SizedBox(
-                                      width: 44,
-                                      child: IconButton(
-                                        tooltip: 'حذف',
-                                        onPressed: _busyRows.contains(id)
-                                            ? null
-                                            : () => _delete(row),
-                                        icon: const Icon(
-                                          Icons.delete_outline,
-                                          color: AppColors.accentRed,
-                                          size: 20,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
         ),
       ],
     ),
-    floatingActionButton: FloatingActionButton(
+    floatingActionButton: FloatingActionButton.extended(
       heroTag: 'fab_${widget.table}',
       tooltip: 'إضافة ${widget.singular}',
+      backgroundColor: AppColors.brand800,
       onPressed: () => _edit(),
-      child: const Icon(Icons.add),
+      icon: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(color: AppColors.secondaryGold.withValues(alpha: 0.2), shape: BoxShape.circle),
+        child: const Icon(Icons.add, size: 20, color: AppColors.secondaryGoldLight),
+      ),
+      label: ArabicText('إضافة ${widget.singular}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
     ),
   );
 }
@@ -573,133 +629,244 @@ class _RecordEditorDialogState extends State<RecordEditorDialog> {
   @override
   Widget build(BuildContext context) => PopScope(
     canPop: !_saving,
-    child: AlertDialog(
-      title: ArabicText(widget.title),
-      content: SizedBox(
+    child: Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Container(
         width: 440,
-        child: Form(
-          key: _form,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final field in widget.fields)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: field.choices != null
-                        ? DropdownButtonFormField<String>(
-                            initialValue:
-                                _controllers[field.keyName]!.text.isEmpty
-                                ? null
-                                : _controllers[field.keyName]!.text,
-                            isExpanded: true,
-                            decoration: InputDecoration(labelText: field.label),
-                            items:
-                                {
-                                      ...field.choices!,
-                                      if (_controllers[field.keyName]!
-                                          .text
-                                          .isNotEmpty)
-                                        _controllers[field.keyName]!.text,
-                                    }
-                                    .map(
-                                      (value) => DropdownMenuItem(
-                                        value: value,
-                                        child: ArabicText(value),
-                                      ),
-                                    )
-                                    .toList(),
-                            onChanged: _saving
-                                ? null
-                                : (value) => _controllers[field.keyName]!.text =
-                                      value ?? '',
-                          )
-                        : TextFormField(
-                            controller: _controllers[field.keyName],
-                            enabled: !_saving,
-                            inputFormatters: const [ArabicDigitsFormatter()],
-                            textDirection: TextDirection.rtl,
-                            maxLines: field.lines,
-                            readOnly: field.date,
-                            decoration: InputDecoration(
-                              labelText: field.label,
-                              suffixIcon: field.date
-                                  ? Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        if (!field.required)
-                                          IconButton(
-                                            tooltip: 'مسح التاريخ',
-                                            onPressed: _saving
-                                                ? null
-                                                : () =>
-                                                      _controllers[field
-                                                              .keyName]!
-                                                          .clear(),
-                                            icon: const Icon(Icons.close),
-                                          ),
-                                        const Icon(Icons.calendar_today),
-                                      ],
-                                    )
-                                  : null,
-                            ),
-                            onTap: !field.date
-                                ? null
-                                : () async {
-                                    final parsed = ArabicFormat.parseDate(
-                                      _controllers[field.keyName]!.text,
-                                    );
-                                    final picked = await showDatePicker(
-                                      context: context,
-                                      initialDate:
-                                          parsed != null &&
-                                              parsed.year >= 1900 &&
-                                              parsed.year < 2200
-                                          ? parsed
-                                          : DateTime.now(),
-                                      firstDate: DateTime(1900),
-                                      lastDate: DateTime(2200),
-                                    );
-                                    if (picked != null && mounted) {
-                                      _controllers[field.keyName]!.text =
-                                          ArabicFormat.date(picked);
-                                    }
-                                  },
-                            validator: (value) {
-                              if (field.required &&
-                                  (value == null || value.trim().isEmpty)) {
-                                return 'هذا الحقل مطلوب';
-                              }
-                              if (field.date &&
-                                  value != null &&
-                                  value.trim().isNotEmpty &&
-                                  ArabicFormat.parseDate(value) == null) {
-                                return 'اختر تاريخًا صحيحًا';
-                              }
-                              return null;
-                            },
-                          ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10))],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: AppColors.brand50)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.brand100),
+                    ),
+                    child: const Icon(Icons.edit_document, color: AppColors.brand800, size: 20),
                   ),
-                if (_error != null)
-                  ArabicText(
-                    _error!,
-                    style: const TextStyle(color: AppColors.accentRed),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ArabicText(widget.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.brand900)),
+                        const ArabicText('إدخال البيانات', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
+                      ],
+                    ),
                   ),
-              ],
+                  IconButton(
+                    onPressed: _saving ? null : () => Navigator.pop(context),
+                    style: IconButton.styleFrom(backgroundColor: AppColors.brand50),
+                    icon: const Icon(Icons.close, size: 18, color: AppColors.brand700),
+                  ),
+                ],
+              ),
             ),
-          ),
+
+            // Form Body
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Form(
+                  key: _form,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final field in widget.fields)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  ArabicText(field.label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.brand800)),
+                                  if (field.required)
+                                    const ArabicText(' *', style: TextStyle(color: AppColors.accentRed, fontSize: 12, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              field.choices != null
+                                  ? DropdownButtonFormField<String>(
+                                      initialValue: _controllers[field.keyName]!.text.isEmpty ? null : _controllers[field.keyName]!.text,
+                                      isExpanded: true,
+                                      icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.brand700),
+                                      decoration: InputDecoration(
+                                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.brand200)),
+                                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.brand200)),
+                                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.brand800, width: 1.5)),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                      ),
+                                      items: {
+                                        ...field.choices!,
+                                        if (_controllers[field.keyName]!.text.isNotEmpty) _controllers[field.keyName]!.text,
+                                      }.map((value) => DropdownMenuItem(value: value, child: ArabicText(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)))).toList(),
+                                      onChanged: _saving ? null : (value) => _controllers[field.keyName]!.text = value ?? '',
+                                    )
+                                  : TextFormField(
+                                      controller: _controllers[field.keyName],
+                                      enabled: !_saving,
+                                      inputFormatters: const [ArabicDigitsFormatter()],
+                                      textDirection: TextDirection.rtl,
+                                      maxLines: field.lines,
+                                      readOnly: field.date,
+                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.brand900),
+                                      decoration: InputDecoration(
+                                        hintText: field.date ? 'اختر التاريخ' : 'أدخل ${field.label}...',
+                                        hintStyle: const TextStyle(color: Colors.black38, fontSize: 12, fontWeight: FontWeight.normal),
+                                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.brand200)),
+                                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.brand200)),
+                                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.brand800, width: 1.5)),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        suffixIcon: field.date
+                                            ? Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  if (!field.required && _controllers[field.keyName]!.text.isNotEmpty)
+                                                    IconButton(
+                                                      tooltip: 'مسح التاريخ',
+                                                      onPressed: _saving ? null : () {
+                                                        setState(() {
+                                                          _controllers[field.keyName]!.clear();
+                                                        });
+                                                      },
+                                                      icon: const Icon(Icons.close, size: 16),
+                                                    ),
+                                                  const Padding(
+                                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                                    child: Icon(Icons.calendar_today, size: 18, color: AppColors.brand700),
+                                                  ),
+                                                ],
+                                              )
+                                            : null,
+                                      ),
+                                      onTap: !field.date
+                                          ? null
+                                          : () async {
+                                              final parsed = ArabicFormat.parseDate(_controllers[field.keyName]!.text);
+                                              final picked = await showDatePicker(
+                                                context: context,
+                                                initialDate: parsed != null && parsed.year >= 1900 && parsed.year < 2200 ? parsed : DateTime.now(),
+                                                firstDate: DateTime(1900),
+                                                lastDate: DateTime(2200),
+                                                builder: (context, child) {
+                                                  return Theme(
+                                                    data: Theme.of(context).copyWith(
+                                                      colorScheme: const ColorScheme.light(
+                                                        primary: AppColors.brand800,
+                                                        onPrimary: Colors.white,
+                                                        onSurface: AppColors.textDark,
+                                                      ),
+                                                    ),
+                                                    child: child!,
+                                                  );
+                                                },
+                                              );
+                                              if (picked != null && mounted) {
+                                                setState(() {
+                                                  _controllers[field.keyName]!.text = ArabicFormat.date(picked);
+                                                });
+                                              }
+                                            },
+                                      validator: (value) {
+                                        if (field.required && (value == null || value.trim().isEmpty)) {
+                                          return 'هذا الحقل مطلوب';
+                                        }
+                                        if (field.date && value != null && value.trim().isNotEmpty && ArabicFormat.parseDate(value) == null) {
+                                          return 'اختر تاريخًا صحيحًا';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                            ],
+                          ),
+                        ),
+                      if (_error != null)
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: AppColors.accentRed.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.error_outline, color: AppColors.accentRed, size: 16),
+                              const SizedBox(width: 8),
+                              Expanded(child: ArabicText(_error!, style: const TextStyle(color: AppColors.accentRed, fontSize: 12, fontWeight: FontWeight.bold))),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Footer (Actions)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: AppColors.brand50)),
+                color: AppColors.paperCream,
+                borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: TextButton(
+                      onPressed: _saving ? null : () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.brand200)),
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppColors.brand700,
+                      ),
+                      child: const ArabicText('إلغاء', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: _saving ? null : _save,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: AppColors.brand800,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: _saving
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : const ArabicText('حفظ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _saving ? null : () => Navigator.pop(context),
-          child: const ArabicText('إلغاء'),
-        ),
-        FilledButton(
-          onPressed: _saving ? null : _save,
-          child: ArabicText(_saving ? 'جارٍ الحفظ…' : 'حفظ'),
-        ),
-      ],
     ),
   );
 }
