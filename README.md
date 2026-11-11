@@ -1,4 +1,23 @@
+<div align="center">
+<img src="assets/readme-cover.svg" alt="Judicial Agenda — Flutter app for Egyptian lawyers" width="100%" />
+
 # الأجندة القضائية
+**A focused agenda for Egyptian legal practice**
+
+[Repository](https://github.com/matef-hub/agenda) · [Developer](https://github.com/matef-hub)
+</div>
+
+> **نطاق المشروع:** أجندة مستقلة، وليست نظام إدارة قضايا متكاملًا؛ استدعاء بيانات جلسة سابقة للمساعدة في الكتابة لا يُنشئ ربطًا إلزاميًا بين السجلات.
+
+```mermaid
+flowchart LR
+    D["تاريخ الجلسة"] --> C["بيانات الدعوى"]
+    C --> H["استدعاء البيانات السابقة اختياريًا"]
+    H --> S["حفظ الجلسة"]
+    S --> P["الطباعة أو التقويم"]
+```
+
+## دليل المشروع
 
 تطبيق Flutter عربي لتنظيم جلسات القضايا والتوكيلات وأوراق المحضرين والأعمال الإدارية والبيانات الشخصية. يعمل بقاعدة SQLite محلية، مع واجهة عربية من اليمين إلى اليسار. توجد التصميمات المرجعية في `stitch_ui/`.
 
